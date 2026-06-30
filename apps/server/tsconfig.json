@@ -1,0 +1,12 @@
+{
+  "extends": "@zira/tsconfig/node.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src/**/*"]
+}

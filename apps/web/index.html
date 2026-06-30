@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0B0F1A" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Zira Chat – A premium, modern messaging experience with end-to-end encryption. Connect with friends and family through text, voice, and video." />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" as="image" href="/logo.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Zira Chat</title>
+    <!-- Theme flash prevention: apply saved theme before first paint -->
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('zira-theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = stored === 'dark' || (!stored && prefersDark) || stored === null;
+          document.documentElement.classList.toggle('dark', isDark);
+          // Update theme-color meta for browser chrome
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', isDark ? '#0B0F1A' : '#F8FAFC');
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      /* Critical CSS: prevent flash of unstyled content */
+      body {
+        margin: 0;
+        background-color: #F8FAFC;
+        color: #0F172A;
+      }
+      .dark body,
+      html.dark body {
+        background-color: #0B0F1A;
+        color: #F1F5F9;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

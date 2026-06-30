@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: zira_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zira_network
+
+  mongo:
+    image: mongo:6
+    container_name: zira_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - zira_mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zira_network
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: zira_server
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/zirachat
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=docker_local_dev_secret_key_123!
+      - JWT_REFRESH_SECRET=docker_local_dev_refresh_key_456!
+      - CLIENT_URL=http://localhost:8080
+      # Cloudinary keys should be passed via CLI or actual .env file, not hardcoded
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    networks:
+      - zira_network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:4000
+    container_name: zira_web
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+    networks:
+      - zira_network
+
+volumes:
+  zira_mongo_data:
+
+networks:
+  zira_network:
+    driver: bridge

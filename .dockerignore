@@ -1,0 +1,34 @@
+node_modules
+.npm
+.yarn
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+dist
+build
+.next
+out
+.turbo
+
+# OS files
+.DS_Store
+*.pem
+
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Tests
+coverage
+tests
+__tests__
+playwright-report
+test-results

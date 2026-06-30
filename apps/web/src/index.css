@@ -1,0 +1,322 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   NEOMORPH PRO DESIGN SYSTEM - VISUAL HIERARCHY REFINED
+   ============================================================ */
+
+@layer base {
+  :root {
+    /* Brand Palette - Inspired by Zira Chat logo */
+    --color-electric-cyan: #00F0FF;
+    --color-aurora-blue: #2563EB;
+    --color-emerald: #10B981;
+    --color-sky-blue: #0EA5E9;
+    --color-turquoise: #06B6D4;
+    --color-amber: #F59E0B;
+    --color-rose: #F43F5E;
+    --color-green: #22C55E;
+
+    /* Light Theme (Strict Visual Separation) */
+    --color-background: #D4DBE6;     /* App Canvas (Deep Pearl) */
+    --color-sidebar: #E3E8F0;        /* Sidebar (Lighter raised base) */
+    --color-panel: #E3E8F0;          /* Secondary base panels */
+    --color-chat-area: #F1F5F9;      /* Chat Area (Bright raised base) */
+    --color-card: #FFFFFF;           /* Floating Cards (Crisp pure white) */
+    --color-composer: #E2E8F0;       /* Sunken Fields (Sunken Pearl) */
+    --color-popup: #FFFFFF;          /* Menus & Dropdowns (Crisp white) */
+    --color-dropdown: #FFFFFF;       /* Context items (Crisp white) */
+    --color-modal: #FFFFFF;          /* Dialogs & Popups (Crisp white) */
+    --color-input: #E2E8F0;          /* Input fields (Sunken) */
+
+    /* Accent & Action Colors */
+    --color-primary: var(--color-aurora-blue);
+    --color-secondary: var(--color-sky-blue);
+    --color-accent: var(--color-electric-cyan);
+    --color-error: var(--color-rose);
+    --color-success: var(--color-green);
+    --color-warning: var(--color-amber);
+
+    /* Text Hierarchy (High Contrast) */
+    --color-text-primary: #0F172A;     /* Slate 900 (Bold headlines/body) */
+    --color-text-secondary: #334155;   /* Slate 700 (Subheadings) */
+    --color-text-muted: #475569;       /* Slate 600 (Meta tags/timestamps) */
+    --color-text-caption: #64748B;     /* Slate 500 (Placeholders) */
+
+    /* Soft Neumorphic Shadows (High Contrast Light Mode) */
+    --shadow-neo-out-sm: 3px 3px 7px #aab5c6, -3px -3px 7px #ffffff;
+    --shadow-neo-out-md: 8px 8px 18px #aab5c6, -8px -8px 18px #ffffff;
+    --shadow-neo-out-lg: 16px 16px 36px #9ba8bc, -16px -16px 36px #ffffff;
+    --shadow-neo-in-sm: inset 3px 3px 6px #aab5c6, inset -3px -3px 6px #ffffff;
+    --shadow-neo-in-md: inset 5px 5px 10px #aab5c6, inset -5px -5px 10px #ffffff;
+    --shadow-border: 1px solid rgba(255, 255, 255, 0.45);
+
+    /* Chat bubble colors (Light) */
+    --color-bubble-own: linear-gradient(135deg, var(--color-aurora-blue), #1D4ED8);
+    --color-bubble-own-text: #FFFFFF;
+    --color-bubble-other: #FFFFFF;
+    --color-bubble-other-text: var(--color-text-primary);
+
+    /* Scrollbar */
+    --scrollbar-thumb: #94A3B8;
+    --scrollbar-track: transparent;
+  }
+
+  .dark {
+    /* Dark Theme (Strict Visual Separation) */
+    --color-background: #04060A;     /* App Canvas (Deep Midnight Black) */
+    --color-sidebar: #0D111A;        /* Sidebar (Midnight base) */
+    --color-panel: #0D111A;          /* Secondary base panels */
+    --color-chat-area: #141A29;      /* Chat Area (Lighter midnight base) */
+    --color-card: #1C243B;           /* Floating Cards (Rich dark Navy) */
+    --color-composer: #090C12;       /* Sunken Fields (Deep sunken black) */
+    --color-popup: #222B45;          /* Menus & Dropdowns (Navy base) */
+    --color-dropdown: #222B45;       /* Context items (Navy base) */
+    --color-modal: #222B45;          /* Dialogs & Popups (Navy base) */
+    --color-input: #090C12;          /* Input fields (Sunken) */
+
+    /* Accent & Action Colors */
+    --color-primary: var(--color-aurora-blue);
+    --color-secondary: var(--color-sky-blue);
+    --color-accent: var(--color-electric-cyan);
+
+    /* Text Hierarchy (High Contrast Dark Mode) */
+    --color-text-primary: #FFFFFF;     /* Pure white */
+    --color-text-secondary: #E2E8F0;   /* Slate 200 */
+    --color-text-muted: #94A3B8;       /* Slate 400 */
+    --color-text-caption: #64748B;     /* Slate 500 */
+
+    /* Soft Neumorphic Shadows (High Contrast Dark Mode) */
+    --shadow-neo-out-sm: 3px 3px 7px #010204, -3px -3px 7px #1c263d;
+    --shadow-neo-out-md: 8px 8px 18px #010204, -8px -8px 18px #1c263d;
+    --shadow-neo-out-lg: 16px 16px 36px #000000, -16px -16px 36px #24314f;
+    --shadow-neo-in-sm: inset 3px 3px 6px #010204, inset -3px -3px 6px #1c263d;
+    --shadow-neo-in-md: inset 5px 5px 10px #010204, inset -5px -5px 10px #1c263d;
+    --shadow-border: 1px solid rgba(255, 255, 255, 0.04);
+
+    /* Chat bubble colors (Dark) */
+    --color-bubble-own: linear-gradient(135deg, var(--color-aurora-blue), #1D4ED8);
+    --color-bubble-own-text: #FFFFFF;
+    --color-bubble-other: #1C243B;
+    --color-bubble-other-text: var(--color-text-primary);
+
+    /* Scrollbar */
+    --scrollbar-thumb: #475569;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+}
+
+/* ============================================================
+   NEOMORPHIC UTILITIES & ELEVATIONS
+   ============================================================ */
+
+@layer utilities {
+  .bg-background {
+    background-color: var(--color-background);
+  }
+  .bg-sidebar {
+    background-color: var(--color-sidebar);
+  }
+  .bg-panel {
+    background-color: var(--color-panel);
+  }
+  .bg-chat-area {
+    background-color: var(--color-chat-area);
+  }
+  .bg-card {
+    background-color: var(--color-card);
+  }
+  .bg-composer {
+    background-color: var(--color-composer);
+  }
+  .bg-popup {
+    background-color: var(--color-popup);
+  }
+  .bg-dropdown {
+    background-color: var(--color-dropdown);
+  }
+  .bg-modal {
+    background-color: var(--color-modal);
+  }
+  .bg-input {
+    background-color: var(--color-input);
+  }
+
+  /* Raised Surfaces */
+  .neo-out-sm {
+    background-color: var(--color-panel);
+    box-shadow: var(--shadow-neo-out-sm);
+    border: var(--shadow-border);
+  }
+  .neo-out-md {
+    background-color: var(--color-panel);
+    box-shadow: var(--shadow-neo-out-md);
+    border: var(--shadow-border);
+  }
+  .neo-out-lg {
+    background-color: var(--color-panel);
+    box-shadow: var(--shadow-neo-out-lg);
+    border: var(--shadow-border);
+  }
+
+  /* Sunken Surfaces */
+  .neo-in-sm {
+    background-color: var(--color-composer);
+    box-shadow: var(--shadow-neo-in-sm);
+    border: var(--shadow-border);
+  }
+  .neo-in-md {
+    background-color: var(--color-composer);
+    box-shadow: var(--shadow-neo-in-md);
+    border: var(--shadow-border);
+  }
+
+  /* Buttons */
+  .neo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    border-radius: 12px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    border: var(--shadow-border);
+  }
+
+  .neo-btn-primary {
+    background: linear-gradient(135deg, var(--color-aurora-blue), #1D4ED8);
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4), var(--shadow-neo-out-sm);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  .neo-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5), var(--shadow-neo-out-md);
+  }
+  .neo-btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .neo-btn-secondary {
+    background-color: var(--color-card);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-neo-out-sm);
+  }
+  .neo-btn-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-neo-out-md);
+  }
+  .neo-btn-secondary:active {
+    background-color: var(--color-composer);
+    box-shadow: var(--shadow-neo-in-sm);
+  }
+
+  .neo-btn-danger {
+    background: linear-gradient(135deg, var(--color-rose), #BE123C);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35);
+  }
+  .neo-btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(244, 63, 94, 0.45);
+  }
+  .neo-btn-danger:active {
+    transform: translateY(1px);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .neo-btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: none;
+  }
+  .neo-btn-ghost:hover {
+    background-color: var(--color-panel);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-neo-out-sm);
+  }
+  .neo-btn-ghost:active {
+    box-shadow: var(--shadow-neo-in-sm);
+  }
+
+  /* Backwards compatibility glass aliases mapped to soft neumorphic classes */
+  .glass-primary {
+    @apply neo-out-md;
+  }
+  .glass-secondary {
+    @apply neo-out-sm;
+  }
+  .glass-floating {
+    background-color: var(--color-popup);
+    box-shadow: var(--shadow-neo-out-lg);
+    border: var(--shadow-border);
+  }
+  .glass-modal {
+    background-color: var(--color-modal);
+    box-shadow: var(--shadow-neo-out-lg);
+    border: var(--shadow-border);
+  }
+  .glass-sidebar {
+    @apply neo-out-md;
+  }
+  .glass-sidebar-panel {
+    background-color: var(--color-sidebar);
+  }
+  .glass-surface {
+    @apply neo-out-md;
+  }
+  .glass-elevated {
+    @apply neo-out-sm;
+  }
+
+  /* Chat Bubbles */
+  .bubble-own {
+    background: var(--color-bubble-own);
+    color: var(--color-bubble-own-text);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25), var(--shadow-neo-out-sm);
+  }
+  .bubble-other {
+    background-color: var(--color-bubble-other);
+    color: var(--color-bubble-other-text);
+    border: var(--shadow-border);
+    box-shadow: var(--shadow-neo-out-sm);
+  }
+
+  /* Scrollbar override */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+}
