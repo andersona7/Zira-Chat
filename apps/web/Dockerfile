@@ -29,7 +29,7 @@ COPY turbo.json turbo.json
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN pnpm run build --filter=web...
+RUN pnpm exec turbo run build --filter=web...
 
 # Stage 3: Serve the built PWA using Nginx
 FROM nginx:alpine AS runner

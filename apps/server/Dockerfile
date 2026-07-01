@@ -24,7 +24,7 @@ RUN pnpm install --frozen-lockfile
 
 # Then build the project
 COPY --from=builder /app/out/full/ .
-RUN pnpm run build --filter=server...
+RUN pnpm exec turbo run build --filter=server...
 
 # Stage 3: Setup the production environment
 FROM base AS runner
