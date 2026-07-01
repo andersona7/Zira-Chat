@@ -1,7 +1,8 @@
 FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable \
+ && corepack prepare pnpm@10.15.0 --activate
 
 # Stage 1: Prune the workspace to only include the web app
 FROM base AS builder
