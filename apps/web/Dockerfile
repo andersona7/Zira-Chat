@@ -1,12 +1,14 @@
 FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 # Stage 1: Prune the workspace to only include the web app
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-RUN npm install -g turbo
 COPY . .
-RUN turbo prune web --docker
+RUN npx turbo prune web --docker
 
 # Stage 2: Install and Build the web app
 FROM base AS installer
@@ -15,8 +17,9 @@ WORKDIR /app
 
 COPY .gitignore .gitignore
 COPY --from=builder /app/out/json/ .
-COPY --from=builder /app/out/package-lock.json ./package-lock.json
-RUN npm ci
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+RUN pnpm install --frozen-lockfile
 
 COPY --from=builder /app/out/full/ .
 COPY turbo.json turbo.json
@@ -25,7 +28,7 @@ COPY turbo.json turbo.json
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN npx turbo run build --filter=web...
+RUN pnpm run build --filter=web...
 
 # Stage 3: Serve the built PWA using Nginx
 FROM nginx:alpine AS runner

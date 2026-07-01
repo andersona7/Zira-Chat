@@ -1,12 +1,14 @@
 FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 # Stage 1: Prune the workspace to only include the server and its dependencies
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-RUN npm install -g turbo
 COPY . .
-RUN turbo prune server --docker
+RUN npx turbo prune server --docker
 
 # Stage 2: Install dependencies and build the server
 FROM base AS installer
@@ -15,12 +17,13 @@ WORKDIR /app
 
 # First install the dependencies (as they change less often)
 COPY --from=builder /app/out/json/ .
-COPY --from=builder /app/out/package-lock.json ./package-lock.json
-RUN npm ci
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+RUN pnpm install --frozen-lockfile
 
 # Then build the project
 COPY --from=builder /app/out/full/ .
-RUN npx turbo run build --filter=server...
+RUN pnpm run build --filter=server...
 
 # Stage 3: Setup the production environment
 FROM base AS runner
@@ -39,4 +42,4 @@ WORKDIR /app/apps/server
 
 # Expose port and start
 EXPOSE 4000
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
