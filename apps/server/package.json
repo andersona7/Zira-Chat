@@ -13,7 +13,6 @@
     "@socket.io/redis-adapter": "^8.3.0",
     "@types/geoip-lite": "^1.4.4",
     "@types/ua-parser-js": "^0.7.39",
-    "@types/uuid": "^11.0.0",
     "@zira/types": "workspace:*",
     "@zira/utils": "workspace:*",
     "bcryptjs": "^2.4.3",
