@@ -8,7 +8,12 @@ import { statusApi } from '../store/api/statusApi';
 import { contactApi } from '../store/api/contactApi';
 import { receiveCall, endCall } from '../store/slices/callSlice';
 import { setTypingState, setActiveChat } from '../store/slices/chatSlice';
-import { updateBlockedUsers, addBlockedBy, removeBlockedBy, logout } from '../store/slices/authSlice';
+import {
+  updateBlockedUsers,
+  addBlockedBy,
+  removeBlockedBy,
+  logout,
+} from '../store/slices/authSlice';
 import { userApi } from '../store/api/userApi';
 import { playNotificationSound } from '../utils/audio';
 import toast from 'react-hot-toast';
@@ -20,7 +25,17 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 interface SocketContextType {
   socket: Socket | null;
-  sendMessage: (chatId: string, content: string, type?: string, media?: any, replyTo?: string, forwarded?: boolean, sharedContact?: any, gifId?: string, clientId?: string) => void;
+  sendMessage: (
+    chatId: string,
+    content: string,
+    type?: string,
+    media?: any,
+    replyTo?: string,
+    forwarded?: boolean,
+    sharedContact?: any,
+    gifId?: string,
+    clientId?: string
+  ) => void;
   emitCallInitiate: (receiverId: string, type: string, offer: RTCSessionDescriptionInit) => void;
   emitCallAccept: (callerId: string, answer: RTCSessionDescriptionInit) => void;
   emitCallReject: (callerId: string) => void;
@@ -111,8 +126,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const updateFn = (draft: any) => {
         if (draft && draft.data && draft.data.messages) {
           // If there is an optimistic placeholder with matching clientId, replace it
-          const index = draft.data.messages.findIndex((m: any) => 
-            (message.clientId && (m.id === message.clientId || m.clientId === message.clientId)) || m.id === message.id
+          const index = draft.data.messages.findIndex(
+            (m: any) =>
+              (message.clientId &&
+                (m.id === message.clientId || m.clientId === message.clientId)) ||
+              m.id === message.id
           );
           if (index !== -1) {
             draft.data.messages[index] = { ...message, isOptimistic: false };
@@ -121,9 +139,23 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
       };
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId: message.chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId: message.chatId, cursor: undefined }, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId: message.chatId, cursor: null }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId: message.chatId } as any, updateFn)
+      );
+      dispatch(
+        chatApi.util.updateQueryData(
+          'getMessages',
+          { chatId: message.chatId, cursor: undefined },
+          updateFn
+        )
+      );
+      dispatch(
+        chatApi.util.updateQueryData(
+          'getMessages',
+          { chatId: message.chatId, cursor: null },
+          updateFn
+        )
+      );
 
       // Inline update for getChats sidebar list
       dispatch(
@@ -133,7 +165,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             if (chat) {
               chat.lastMessage = message;
               chat.updatedAt = message.createdAt;
-              
+
               const currentUser = userRef.current;
               const currentActiveChat = activeChatRef.current;
               const isOwnMessage = currentUser && message.senderId === currentUser.id;
@@ -143,9 +175,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 if (!chat.unreadCounts) chat.unreadCounts = {};
                 chat.unreadCounts[currentUser.id] = (chat.unreadCounts[currentUser.id] || 0) + 1;
               }
-              
+
               // Re-sort chats by updatedAt
-              draft.data.sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+              draft.data.sort(
+                (a: any, b: any) =>
+                  new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+              );
             }
           }
         })
@@ -160,27 +195,36 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (!isOwnMessage && !isCurrentChat && !isMuted && currentUser) {
         if (currentUser.settings?.notifications?.sound) playNotificationSound();
-        if (currentUser.settings?.notifications?.browser && 'Notification' in window && Notification.permission === 'granted') {
+        if (
+          currentUser.settings?.notifications?.browser &&
+          'Notification' in window &&
+          Notification.permission === 'granted'
+        ) {
           const chatsResult = chatApi.endpoints.getChats.select()(store.getState() as any);
           const chats = chatsResult?.data?.data || [];
-          const chatObj = chats.find(c => c.id === message.chatId);
-          const participant = chatObj?.participants?.find(p => p.id === message.senderId || (p as any)._id === message.senderId);
+          const chatObj = chats.find((c) => c.id === message.chatId);
+          const participant = chatObj?.participants?.find(
+            (p) => p.id === message.senderId || (p as any)._id === message.senderId
+          );
           const senderName = getDisplayName(message.senderId, participant) || 'New Message';
-          
+
           const state = store.getState() as RootState;
           const unlockedChats = (state.chat as any).unlockedChats || [];
           const isChatLocked = (chatObj as any)?.isLocked && !unlockedChats.includes(chatObj?.id);
 
           if (isChatLocked) {
-            new Notification('Locked Chat', { body: 'New Message', icon: '/vite.svg' });
+            new Notification('Locked Chat', { body: 'New Message', icon: '/favicon.svg' });
           } else {
-            new Notification(senderName, { body: message.content || 'New attachment', icon: '/vite.svg' });
+            new Notification(senderName, {
+              body: message.content || 'New attachment',
+              icon: '/favicon.svg',
+            });
           }
         }
       }
     });
 
-    socket.on('chat_updated', (data?: { chatId?: string, deleted?: boolean }) => {
+    socket.on('chat_updated', (data?: { chatId?: string; deleted?: boolean }) => {
       dispatch(chatApi.util.invalidateTags(['Chat']));
       const currentActiveChat = activeChatRef.current;
       if (data?.deleted && currentActiveChat?.id === data.chatId) {
@@ -201,9 +245,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       };
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
-      
+
       // Update unread count for readBy in getChats cache
       dispatch(
         chatApi.util.updateQueryData('getChats', undefined, (draft) => {
@@ -219,7 +265,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
 
     socket.on('message_deleted', ({ messageId, chatId }) => {
-      console.log(`[Socket] message_deleted received on client. messageId: ${messageId}, chatId: ${chatId}`);
+      console.log(
+        `[Socket] message_deleted received on client. messageId: ${messageId}, chatId: ${chatId}`
+      );
       const updateFn = (draft: any) => {
         if (draft && draft.data && draft.data.messages) {
           const msg = draft.data.messages.find((m: any) => m.id === messageId);
@@ -238,7 +286,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       };
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
     });
 
@@ -252,7 +302,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       };
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
     });
 
@@ -264,7 +316,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       };
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
     });
 
@@ -276,7 +330,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       };
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
     });
 
@@ -288,29 +344,34 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       };
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
     });
 
-    socket.on('user_status_change', (payload: { userId: string; isOnline: boolean; lastSeen?: string }) => {
-      dispatch(
-        chatApi.util.updateQueryData('getChats', undefined, (draft) => {
-          if (draft && draft.data) {
-            draft.data.forEach((chat: any) => {
-              chat.participants.forEach((p: any) => {
-                if (p.id === payload.userId || (p._id && p._id === payload.userId)) {
-                  p.isOnline = payload.isOnline;
-                  p.status = payload.isOnline ? 'ONLINE' : 'OFFLINE';
-                  if (payload.lastSeen) {
-                    p.lastSeen = payload.lastSeen;
+    socket.on(
+      'user_status_change',
+      (payload: { userId: string; isOnline: boolean; lastSeen?: string }) => {
+        dispatch(
+          chatApi.util.updateQueryData('getChats', undefined, (draft) => {
+            if (draft && draft.data) {
+              draft.data.forEach((chat: any) => {
+                chat.participants.forEach((p: any) => {
+                  if (p.id === payload.userId || (p._id && p._id === payload.userId)) {
+                    p.isOnline = payload.isOnline;
+                    p.status = payload.isOnline ? 'ONLINE' : 'OFFLINE';
+                    if (payload.lastSeen) {
+                      p.lastSeen = payload.lastSeen;
+                    }
                   }
-                }
+                });
               });
-            });
-          }
-        })
-      );
-    });
+            }
+          })
+        );
+      }
+    );
 
     socket.on('message_error', (payload: { chatId: string; error: string }) => {
       toast.error(payload.error);
@@ -339,71 +400,123 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       );
     });
 
-    socket.on('contact_deleted', ({ id, chatId }: { id: string; contactUserId: string; chatId?: string }) => {
-      dispatch(
-        contactApi.util.updateQueryData('getContacts', undefined, (draft) => {
-          if (draft.data) {
-            draft.data = draft.data.filter((c: any) => c.id !== id);
-            return draft;
-          }
-        })
-      );
-      dispatch(chatApi.util.invalidateTags(['Chat']));
+    socket.on(
+      'contact_deleted',
+      ({ id, chatId }: { id: string; contactUserId: string; chatId?: string }) => {
+        dispatch(
+          contactApi.util.updateQueryData('getContacts', undefined, (draft) => {
+            if (draft.data) {
+              draft.data = draft.data.filter((c: any) => c.id !== id);
+              return draft;
+            }
+          })
+        );
+        dispatch(chatApi.util.invalidateTags(['Chat']));
 
-      const currentActiveChat = activeChatRef.current;
-      if (chatId && currentActiveChat?.id === chatId) {
-        dispatch(setActiveChat(null));
+        const currentActiveChat = activeChatRef.current;
+        if (chatId && currentActiveChat?.id === chatId) {
+          dispatch(setActiveChat(null));
+        }
       }
-    });
+    );
 
     socket.on('chat_cleared', ({ chatId }: { chatId: string }) => {
       dispatch(chatApi.util.invalidateTags(['Message', 'Chat']));
     });
 
-    socket.on('block:sync', ({ blockerId, blockedId, isBlocked }: { blockerId: string; blockedId: string; isBlocked: boolean }) => {
-      const state = store.getState() as RootState;
-      const currentBlocked = state.auth.user?.blockedUsers || [];
-      if (isBlocked) {
-        if (!currentBlocked.includes(blockedId)) {
-          dispatch(updateBlockedUsers([...currentBlocked, blockedId]));
+    socket.on(
+      'block:sync',
+      ({
+        blockerId,
+        blockedId,
+        isBlocked,
+      }: {
+        blockerId: string;
+        blockedId: string;
+        isBlocked: boolean;
+      }) => {
+        const state = store.getState() as RootState;
+        const currentBlocked = state.auth.user?.blockedUsers || [];
+        if (isBlocked) {
+          if (!currentBlocked.includes(blockedId)) {
+            dispatch(updateBlockedUsers([...currentBlocked, blockedId]));
+          }
+        } else {
+          dispatch(updateBlockedUsers(currentBlocked.filter((id) => id !== blockedId)));
         }
-      } else {
-        dispatch(updateBlockedUsers(currentBlocked.filter(id => id !== blockedId)));
+        dispatch(chatApi.util.invalidateTags(['Chat']));
+        dispatch(contactApi.util.invalidateTags(['Contact']));
+        dispatch(userApi.util.invalidateTags(['User']));
       }
-      dispatch(chatApi.util.invalidateTags(['Chat']));
-      dispatch(contactApi.util.invalidateTags(['Contact']));
-      dispatch(userApi.util.invalidateTags(['User']));
-    });
+    );
 
-    socket.on('block:user', ({ blockerId, blockedId, isBlocked }: { blockerId: string; blockedId: string; isBlocked: boolean }) => {
-      dispatch(addBlockedBy(blockerId));
-      dispatch(chatApi.util.invalidateTags(['Chat']));
-      dispatch(contactApi.util.invalidateTags(['Contact']));
-      dispatch(userApi.util.invalidateTags(['User']));
-    });
+    socket.on(
+      'block:user',
+      ({
+        blockerId,
+        blockedId,
+        isBlocked,
+      }: {
+        blockerId: string;
+        blockedId: string;
+        isBlocked: boolean;
+      }) => {
+        dispatch(addBlockedBy(blockerId));
+        dispatch(chatApi.util.invalidateTags(['Chat']));
+        dispatch(contactApi.util.invalidateTags(['Contact']));
+        dispatch(userApi.util.invalidateTags(['User']));
+      }
+    );
 
-    socket.on('unblock:user', ({ blockerId, blockedId, isBlocked }: { blockerId: string; blockedId: string; isBlocked: boolean }) => {
-      dispatch(removeBlockedBy(blockerId));
-      dispatch(chatApi.util.invalidateTags(['Chat']));
-      dispatch(contactApi.util.invalidateTags(['Contact']));
-      dispatch(userApi.util.invalidateTags(['User']));
-    });
+    socket.on(
+      'unblock:user',
+      ({
+        blockerId,
+        blockedId,
+        isBlocked,
+      }: {
+        blockerId: string;
+        blockedId: string;
+        isBlocked: boolean;
+      }) => {
+        dispatch(removeBlockedBy(blockerId));
+        dispatch(chatApi.util.invalidateTags(['Chat']));
+        dispatch(contactApi.util.invalidateTags(['Contact']));
+        dispatch(userApi.util.invalidateTags(['User']));
+      }
+    );
 
-    socket.on('conversation:update', ({ chatId, isBlocked, blockerId }: { chatId: string; isBlocked: boolean; blockerId: string }) => {
-      dispatch(chatApi.util.invalidateTags(['Chat', 'Message']));
-    });
+    socket.on(
+      'conversation:update',
+      ({
+        chatId,
+        isBlocked,
+        blockerId,
+      }: {
+        chatId: string;
+        isBlocked: boolean;
+        blockerId: string;
+      }) => {
+        dispatch(chatApi.util.invalidateTags(['Chat', 'Message']));
+      }
+    );
 
     // WebRTC Global Listeners
     socket.on('call_incoming', (payload: any) => {
       dispatch(receiveCall(payload));
-      
+
       const currentUser = userRef.current;
-      if (currentUser?.settings?.notifications?.browser && 'Notification' in window && Notification.permission === 'granted') {
-        const callerName = getDisplayName(payload.caller?.id || payload.caller?._id, payload.caller) || 'Someone';
+      if (
+        currentUser?.settings?.notifications?.browser &&
+        'Notification' in window &&
+        Notification.permission === 'granted'
+      ) {
+        const callerName =
+          getDisplayName(payload.caller?.id || payload.caller?._id, payload.caller) || 'Someone';
         new Notification('Incoming Call', {
           body: `${callerName} is calling you (${payload.type === 'VIDEO' ? 'Video' : 'Voice'} Call)`,
-          icon: '/vite.svg',
-          tag: 'call_incoming'
+          icon: '/favicon.svg',
+          tag: 'call_incoming',
         });
       }
     });
@@ -439,7 +552,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [connectedSocket, activeChat]);
 
-  const sendMessage = (chatId: string, content: string, type: string = 'TEXT', media?: any, replyTo?: string, forwarded?: boolean, sharedContact?: any, gifId?: string, clientId?: string) => {
+  const sendMessage = (
+    chatId: string,
+    content: string,
+    type: string = 'TEXT',
+    media?: any,
+    replyTo?: string,
+    forwarded?: boolean,
+    sharedContact?: any,
+    gifId?: string,
+    clientId?: string
+  ) => {
     const finalClientId = clientId || Math.random().toString(36).substring(7);
 
     // Optimistically insert message to RTK cache
@@ -462,13 +585,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       const updateFn = (draft: any) => {
         if (draft && draft.data && draft.data.messages) {
-          const exists = draft.data.messages.some((m: any) => m.id === finalClientId || m.clientId === finalClientId);
+          const exists = draft.data.messages.some(
+            (m: any) => m.id === finalClientId || m.clientId === finalClientId
+          );
           if (!exists) draft.data.messages.push(optimisticMsg);
         }
       };
 
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-      dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
+      dispatch(
+        chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+      );
       dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
 
       // Optimistically update getChats lastMessage preview
@@ -479,7 +606,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             if (chat) {
               chat.lastMessage = optimisticMsg;
               chat.updatedAt = optimisticMsg.createdAt;
-              draft.data.sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+              draft.data.sort(
+                (a: any, b: any) =>
+                  new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+              );
             }
           }
         })
@@ -489,7 +619,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (socketRef.current) {
       socketRef.current.emit(
         'send_message',
-        { chatId, content, type, media, replyTo, forwarded, sharedContact, gifId, clientId: finalClientId },
+        {
+          chatId,
+          content,
+          type,
+          media,
+          replyTo,
+          forwarded,
+          sharedContact,
+          gifId,
+          clientId: finalClientId,
+        },
         (response: any) => {
           if (response && response.success) {
             const realStatus = response.status || 'SENT';
@@ -508,8 +648,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               }
             };
             dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-            dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
-            dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
+            dispatch(
+              chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+            );
+            dispatch(
+              chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn)
+            );
           } else {
             const updateFn = (draft: any) => {
               if (draft && draft.data && draft.data.messages) {
@@ -521,8 +665,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               }
             };
             dispatch(chatApi.util.updateQueryData('getMessages', { chatId } as any, updateFn));
-            dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn));
-            dispatch(chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn));
+            dispatch(
+              chatApi.util.updateQueryData('getMessages', { chatId, cursor: undefined }, updateFn)
+            );
+            dispatch(
+              chatApi.util.updateQueryData('getMessages', { chatId, cursor: null }, updateFn)
+            );
           }
         }
       );

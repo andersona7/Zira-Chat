@@ -78,8 +78,10 @@ const wait = async (signal: AbortSignal | undefined, delayMs: number) =>
     signal?.addEventListener('abort', abortListener, { once: true });
   });
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: '/api/v1',
+  baseUrl: `${API_URL}/api/v1`,
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState;
@@ -126,7 +128,7 @@ export const executeTokenRefresh = async (): Promise<string | null> => {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        const response = await fetch('/api/v1/auth/refresh', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/refresh`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -176,9 +178,7 @@ const shouldAttemptRefresh = (state: RootState, args: RetryableArgs): boolean =>
   return true;
 };
 
-const handleStructuredErrors = (
-  result: BaseQueryResult
-): BaseQueryResult => {
+const handleStructuredErrors = (result: BaseQueryResult): BaseQueryResult => {
   if (navigator.onLine === false) {
     return {
       error: {
@@ -204,22 +204,22 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     const state = api.getState() as RootState;
 
     if (shouldAttemptRefresh(state, normalizedArgs)) {
-      console.debug(`[BaseQuery] 401 received for ${normalizedArgs.url}, attempting token refresh...`);
+      console.debug(
+        `[BaseQuery] 401 received for ${normalizedArgs.url}, attempting token refresh...`
+      );
       const refreshedToken = await refreshAccessToken(api, extraOptions);
 
       if (refreshedToken) {
         console.debug(`[BaseQuery] Token refreshed successfully, retrying ${normalizedArgs.url}`);
-        result = await executeWithRetry(
-          { ...normalizedArgs, _retry: true },
-          api,
-          extraOptions
-        );
+        result = await executeWithRetry({ ...normalizedArgs, _retry: true }, api, extraOptions);
       } else {
         console.warn(`[BaseQuery] Token refresh failed for ${normalizedArgs.url}, logging out`);
         api.dispatch(logout({ reason: 'Your session expired. Please sign in again.' }));
       }
     } else {
-      console.debug(`[BaseQuery] 401 for ${normalizedArgs.url}, refresh skipped (hasHydratedAuth=${state.auth.hasHydratedAuth}, user=${!!state.auth.user}, retry=${normalizedArgs._retry}, excluded=${AUTH_EXCLUDED_PATHS.has(normalizedArgs.url)})`);
+      console.debug(
+        `[BaseQuery] 401 for ${normalizedArgs.url}, refresh skipped (hasHydratedAuth=${state.auth.hasHydratedAuth}, user=${!!state.auth.user}, retry=${normalizedArgs._retry}, excluded=${AUTH_EXCLUDED_PATHS.has(normalizedArgs.url)})`
+      );
     }
   }
 

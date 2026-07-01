@@ -1,7 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
-import { useGetMessagesQuery, useGetChatsQuery, chatApi, useVerifyLockerPinMutation, useSetupLockPinMutation, useVerifyPasswordForLockResetMutation, useRequestLockPinResetCodeMutation, useVerifyLockResetOtpMutation, useResetLockPinMutation } from '@/store/api/chatApi';
+import {
+  useGetMessagesQuery,
+  useGetChatsQuery,
+  chatApi,
+  useVerifyLockerPinMutation,
+  useSetupLockPinMutation,
+  useVerifyPasswordForLockResetMutation,
+  useRequestLockPinResetCodeMutation,
+  useVerifyLockResetOtpMutation,
+  useResetLockPinMutation,
+} from '@/store/api/chatApi';
 import { useUploadMediaMutation } from '@/store/api/mediaApi';
 import { useBlockUserMutation, useUnblockUserMutation } from '@/store/api/userApi';
 import { useSocket } from '@/hooks/useSocket';
@@ -9,7 +19,22 @@ import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { initiateCall } from '@/store/slices/callSlice';
 import { Avatar, IconButton, Dialog, Button, Input } from '@zira/ui';
 import { cn } from '@zira/utils';
-import { Send, Smile, Paperclip, X, FileText, MoreVertical, BellOff, Bell, Phone, Video as VideoIcon, ShieldAlert, Users, ArrowLeft, Lock } from 'lucide-react';
+import {
+  Send,
+  Smile,
+  Paperclip,
+  X,
+  FileText,
+  MoreVertical,
+  BellOff,
+  Bell,
+  Phone,
+  Video as VideoIcon,
+  ShieldAlert,
+  Users,
+  ArrowLeft,
+  Lock,
+} from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { MediaPreviewModal } from './MediaPreviewModal';
 import { VoiceRecorder } from './VoiceRecorder';
@@ -65,12 +90,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   const isLocked = (activeChat as any)?.isLocked && !isLockerUnlocked;
   const isGroup = activeChat?.type === 'GROUP';
   const otherUser = activeChat?.participants?.find((p: any) => p.id !== currentUser?.id);
-  const isBlockedByMe = !!(!isGroup && otherUser && currentUser?.blockedUsers?.includes(otherUser.id));
+  const isBlockedByMe = !!(
+    !isGroup &&
+    otherUser &&
+    currentUser?.blockedUsers?.includes(otherUser.id)
+  );
   const blockedBy = useSelector((state: RootState) => state.auth.blockedBy) || [];
   const isBlockedByOther = !!(!isGroup && otherUser && blockedBy.includes(otherUser.id));
   const isBlocked = isBlockedByMe || isBlockedByOther;
 
-  const { data: messagesResponse, isLoading: isLoadingMessages, isFetching } = useGetMessagesQuery(
+  const {
+    data: messagesResponse,
+    isLoading: isLoadingMessages,
+    isFetching,
+  } = useGetMessagesQuery(
     { chatId: activeChat?.id || '', cursor },
     { skip: !activeChat || isLocked }
   );
@@ -88,14 +121,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   // Chat Lock mutations
   const [verifyLockerPin, { isLoading: isVerifyingPin }] = useVerifyLockerPinMutation();
   const [setupLockPin, { isLoading: isSettingUpPin }] = useSetupLockPinMutation();
-  const [verifyPasswordForReset, { isLoading: isVerifyingPassword }] = useVerifyPasswordForLockResetMutation();
+  const [verifyPasswordForReset, { isLoading: isVerifyingPassword }] =
+    useVerifyPasswordForLockResetMutation();
   const [requestResetCode, { isLoading: isSendingOtp }] = useRequestLockPinResetCodeMutation();
   const [verifyResetOtp, { isLoading: isVerifyingOtp }] = useVerifyLockResetOtpMutation();
   const [resetLockPin, { isLoading: isResettingPin }] = useResetLockPinMutation();
 
   // Local PIN UI state
   const [lockPinInput, setLockPinInput] = useState('');
-  const [lockStep, setLockStep] = useState<'enter_pin' | 'setup_pin' | 'setup_confirm' | 'forgot_password' | 'forgot_otp' | 'forgot_new_pin'>('enter_pin');
+  const [lockStep, setLockStep] = useState<
+    | 'enter_pin'
+    | 'setup_pin'
+    | 'setup_confirm'
+    | 'forgot_password'
+    | 'forgot_otp'
+    | 'forgot_new_pin'
+  >('enter_pin');
   const [setupPinInput, setSetupPinInput] = useState('');
   const [setupPinConfirm, setSetupPinConfirm] = useState('');
   const [forgotPasswordInput, setForgotPasswordInput] = useState('');
@@ -200,12 +241,17 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  
+
   const dragCounter = useRef(0);
   const createdBlobUrls = useRef<Set<string>>(new Set());
 
   const [isContactShareOpen, setIsContactShareOpen] = useState(false);
-  const [contactToShare, setContactToShare] = useState<{ userId: string; fullName: string; username: string; profilePhoto?: string } | null>(null);
+  const [contactToShare, setContactToShare] = useState<{
+    userId: string;
+    fullName: string;
+    username: string;
+    profilePhoto?: string;
+  } | null>(null);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const attachMenuRef = useRef<HTMLDivElement>(null);
 
@@ -238,13 +284,23 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<Message | null>(null);
   const [isForwardModalOpen, setIsForwardModalOpen] = useState(false);
-  const [activePanel, setActivePanel] = useState<'contact_info' | 'search' | 'shared_media' | 'group_info' | 'message_info' | 'ai_assistant' | null>(null);
+  const [activePanel, setActivePanel] = useState<
+    | 'contact_info'
+    | 'search'
+    | 'shared_media'
+    | 'group_info'
+    | 'message_info'
+    | 'ai_assistant'
+    | null
+  >(null);
   const [selectedInfoMessage, setSelectedInfoMessage] = useState<Message | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [previewMessage, setPreviewMessage] = useState<Message | null>(null);
 
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1200
+  );
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -283,23 +339,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const exitLockedChat = useExitLockedChat();
 
-  useChatComposerFocus(
-    messageInputRef,
-    activeChat?.id,
-    text,
-    setText,
-    activePanel,
-    {
-      showEmojiPicker,
-      showGifPicker,
-      isContactShareOpen,
-      showAttachMenu,
-      isRecording: audioRecorder.isRecording,
-      isLocked,
-      isBlocked: isBlockedByMe,
-      disabled: isUploading || isLocked || isBlockedByMe,
-    }
-  );
+  useChatComposerFocus(messageInputRef, activeChat?.id, text, setText, activePanel, {
+    showEmojiPicker,
+    showGifPicker,
+    isContactShareOpen,
+    showAttachMenu,
+    isRecording: audioRecorder.isRecording,
+    isLocked,
+    isBlocked: isBlockedByMe,
+    disabled: isUploading || isLocked || isBlockedByMe,
+  });
 
   const messages = messagesResponse?.data?.messages || [];
   const nextCursor = messagesResponse?.data?.nextCursor;
@@ -331,23 +380,26 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
     return map;
   }, [activeChat]);
 
-  const handleScrollToMessage = useCallback((messageId: string) => {
-    console.log('[ChatArea] handleScrollToMessage invoked for:', messageId);
-    const idx = messages.findIndex(m => m.id === messageId);
-    if (idx !== -1) {
-      virtualizer.scrollToIndex(idx, { align: 'center' });
-      setTimeout(() => {
-        const el = document.getElementById(`msg-${messageId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.remove('animate-highlight');
-          void el.offsetWidth;
-          el.classList.add('animate-highlight');
-          setTimeout(() => el.classList.remove('animate-highlight'), 2000);
-        }
-      }, 100);
-    }
-  }, [messages, virtualizer]);
+  const handleScrollToMessage = useCallback(
+    (messageId: string) => {
+      console.log('[ChatArea] handleScrollToMessage invoked for:', messageId);
+      const idx = messages.findIndex((m) => m.id === messageId);
+      if (idx !== -1) {
+        virtualizer.scrollToIndex(idx, { align: 'center' });
+        setTimeout(() => {
+          const el = document.getElementById(`msg-${messageId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.remove('animate-highlight');
+            void el.offsetWidth;
+            el.classList.add('animate-highlight');
+            setTimeout(() => el.classList.remove('animate-highlight'), 2000);
+          }
+        }, 100);
+      }
+    },
+    [messages, virtualizer]
+  );
 
   useEffect(() => {
     setCursor(undefined);
@@ -575,25 +627,38 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
   let chatStatus = '';
   if (isTyping && !isBlocked) chatStatus = 'typing...';
   else if (isGroup) chatStatus = `${activeChat.participants.length} participants`;
-  else if (otherUser && !isBlocked) chatStatus = otherUser.status === 'ONLINE' ? 'Online' : 'Offline';
+  else if (otherUser && !isBlocked)
+    chatStatus = otherUser.status === 'ONLINE' ? 'Online' : 'Offline';
 
-  const chatName = isGroup ? activeChat.groupMetadata?.name : getContactName(otherUser?.id || (otherUser as any)?._id, otherUser);
+  const chatName = isGroup
+    ? activeChat.groupMetadata?.name
+    : getContactName(otherUser?.id || (otherUser as any)?._id, otherUser);
   const chatAvatar = isGroup ? activeChat.groupMetadata?.avatarUrl : otherUser?.avatarUrl;
   const isMuted = currentUser.mutedChats?.includes(activeChat.id) || false;
   const isOnline = !isGroup && otherUser?.status === 'ONLINE' && !isBlocked;
 
   const handleToggleMute = async () => {
     try {
-      const res = await fetch(`/api/v1/chats/${activeChat.id}/mute`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || ''}/api/v1/chats/${activeChat.id}/mute`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await res.json();
       if (data.success && token) {
-        dispatch(setCredentials({ user: { ...currentUser, mutedChats: data.data.mutedChats }, accessToken: token }));
+        dispatch(
+          setCredentials({
+            user: { ...currentUser, mutedChats: data.data.mutedChats },
+            accessToken: token,
+          })
+        );
         toast.success(data.data.isMuted ? 'Chat muted' : 'Chat unmuted');
       }
-    } catch (error) { toast.error('Failed to toggle mute'); }
+    } catch (error) {
+      toast.error('Failed to toggle mute');
+    }
     setShowMenu(false);
   };
 
@@ -607,11 +672,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
         await blockUser(otherUser.id).unwrap();
         toast.success(`${chatName} blocked`);
       }
-    } catch (e) { toast.error('Action failed'); }
+    } catch (e) {
+      toast.error('Action failed');
+    }
     setShowMenu(false);
   };
-
-
 
   const handleGifSelect = async (gif: GifEntry) => {
     if (!activeChat) return;
@@ -624,10 +689,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
     }
   };
 
-  const uploadFileWithProgress = (file: File, onProgress: (progress: number) => void, retryCount = 0): Promise<any> => {
+  const uploadFileWithProgress = (
+    file: File,
+    onProgress: (progress: number) => void,
+    retryCount = 0
+  ): Promise<any> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/v1/media/upload', true);
+      xhr.open('POST', `${import.meta.env.VITE_API_URL || ''}/api/v1/media/upload`, true);
       const currentToken = tokenRef.current;
       if (currentToken) {
         xhr.setRequestHeader('Authorization', `Bearer ${currentToken}`);
@@ -710,14 +779,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
         type: f.type,
         caption: i === 0 ? text.trim() : '',
       }));
-      
+
       const currentReplyTo = replyingMessage?.id;
-      
+
       // Clear inputs immediately to keep UI non-blocking and instant
       setText('');
       setPreviewFiles([]);
       setReplyingMessage(null);
-      
+
       // Start background upload process
       (async () => {
         setIsUploading(true);
@@ -727,7 +796,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
             const tempId = Math.random().toString(36).substring(7);
             const objectUrl = URL.createObjectURL(item.file);
             createdBlobUrls.current.add(objectUrl);
-            
+
             // Send optimistic message immediately using the local blob URL
             sendMessage(
               activeChat.id,
@@ -746,7 +815,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
               undefined,
               tempId
             );
-            
+
             // Upload in background
             try {
               const res = await uploadFileWithProgress(item.file, () => {});
@@ -784,7 +853,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
 
   const handleShareContact = (sharedContact: any, recipientChatIds: string[]) => {
     recipientChatIds.forEach((chatId) => {
-      sendMessage(chatId, `Shared contact: ${sharedContact.fullName}`, 'CONTACT', undefined, undefined, false, sharedContact);
+      sendMessage(
+        chatId,
+        `Shared contact: ${sharedContact.fullName}`,
+        'CONTACT',
+        undefined,
+        undefined,
+        false,
+        sharedContact
+      );
     });
     toast.success('Contact shared!');
   };
@@ -795,7 +872,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
       userId: otherUser.id,
       fullName: getContactName(otherUser.id || (otherUser as any)._id, otherUser),
       username: otherUser.username,
-      profilePhoto: otherUser.avatarUrl || otherUser.profilePhoto
+      profilePhoto: otherUser.avatarUrl || otherUser.profilePhoto,
     });
     setIsContactShareOpen(true);
   };
@@ -814,14 +891,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
       formData.append('file', audioFile);
       const res = await uploadMedia(formData).unwrap();
       if (res.success && res.data) sendMessage(activeChat.id, '', 'AUDIO', res.data);
-    } catch (err) { toast.error('Failed to send voice note'); }
-    finally { setIsUploading(false); audioRecorder.clearAudio(); }
+    } catch (err) {
+      toast.error('Failed to send voice note');
+    } finally {
+      setIsUploading(false);
+      audioRecorder.clearAudio();
+    }
   };
 
   return (
-    <div
-      className="flex flex-row h-full w-full bg-chat-area overflow-hidden relative z-10"
-    >
+    <div className="flex flex-row h-full w-full bg-chat-area overflow-hidden relative z-10">
       <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden relative">
         <AnimatePresence>
           {isDragging && (
@@ -835,13 +914,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                 <div className="w-16 h-16 rounded-full bg-secondary/15 flex items-center justify-center mb-4 text-secondary animate-bounce shadow-neo-out-sm">
                   <Send className="w-8 h-8 rotate-[-45deg] translate-x-0.5 -translate-y-0.5" />
                 </div>
-                <h3 className="text-lg font-bold text-text-primary mb-1">Drop files to preview and send</h3>
+                <h3 className="text-lg font-bold text-text-primary mb-1">
+                  Drop files to preview and send
+                </h3>
                 <p className="text-xs text-text-secondary leading-relaxed mb-4">
                   Drag one or more files here.
                 </p>
                 <div className="flex flex-wrap gap-1.5 justify-center">
                   {['Images', 'Videos', 'Audio', 'PDFs', 'Docs', 'ZIPs'].map((t) => (
-                    <span key={t} className="text-[10px] font-semibold bg-composer px-2 py-0.5 rounded-full border border-black/5 dark:border-white/5 text-text-muted">
+                    <span
+                      key={t}
+                      className="text-[10px] font-semibold bg-composer px-2 py-0.5 rounded-full border border-black/5 dark:border-white/5 text-text-muted"
+                    >
                       {t}
                     </span>
                   ))}
@@ -851,18 +935,32 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
           )}
         </AnimatePresence>
         <header className="flex items-center justify-between px-5 md:px-7 py-3 border-b border-black/5 dark:border-white/5 h-[65px] shrink-0 z-10">
-          <div className="flex items-center gap-3.5 cursor-pointer hover:opacity-90 transition-opacity min-w-0" onClick={() => setActivePanel(isGroup ? 'group_info' : 'contact_info')}>
-            <IconButton label="Back" onClick={onBack} className="flex md:hidden w-9 h-9 -ml-1.5 bg-transparent border-none">
+          <div
+            className="flex items-center gap-3.5 cursor-pointer hover:opacity-90 transition-opacity min-w-0"
+            onClick={() => setActivePanel(isGroup ? 'group_info' : 'contact_info')}
+          >
+            <IconButton
+              label="Back"
+              onClick={onBack}
+              className="flex md:hidden w-9 h-9 -ml-1.5 bg-transparent border-none"
+            >
               <ArrowLeft className="w-5 h-5 text-text-primary" />
             </IconButton>
 
-            <Avatar src={chatAvatar} fallback={chatName || '?'} size="md" className="ring-offset-background hover:ring-secondary/20" />
+            <Avatar
+              src={chatAvatar}
+              fallback={chatName || '?'}
+              size="md"
+              className="ring-offset-background hover:ring-secondary/20"
+            />
             <div className="flex-grow min-w-0 leading-tight">
               <h3 className="text-text-primary font-bold tracking-tight truncate flex items-center gap-2 text-[15px]">
                 {chatName}
                 {isMuted && <BellOff className="w-3.5 h-3.5 text-text-muted opacity-70" />}
               </h3>
-              <span className={`text-[11px] mt-0.5 block truncate font-medium ${isTyping ? 'text-secondary animate-pulse' : 'text-text-muted opacity-75'}`}>
+              <span
+                className={`text-[11px] mt-0.5 block truncate font-medium ${isTyping ? 'text-secondary animate-pulse' : 'text-text-muted opacity-75'}`}
+              >
                 {chatStatus}
               </span>
             </div>
@@ -871,10 +969,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
           <div className="flex items-center gap-1.5 relative">
             {!isGroup && !isBlocked && (
               <>
-                <IconButton label="Voice Call" onClick={() => dispatch(initiateCall({ remoteUser: otherUser!, type: 'AUDIO' }))} className="w-9.5 h-9.5 bg-transparent hover:shadow-neo-out-sm border-none text-text-secondary hover:text-text-primary">
+                <IconButton
+                  label="Voice Call"
+                  onClick={() => dispatch(initiateCall({ remoteUser: otherUser!, type: 'AUDIO' }))}
+                  className="w-9.5 h-9.5 bg-transparent hover:shadow-neo-out-sm border-none text-text-secondary hover:text-text-primary"
+                >
                   <Phone className="w-4.5 h-4.5" />
                 </IconButton>
-                <IconButton label="Video Call" onClick={() => dispatch(initiateCall({ remoteUser: otherUser!, type: 'VIDEO' }))} className="w-9.5 h-9.5 bg-transparent hover:shadow-neo-out-sm border-none text-text-secondary hover:text-text-primary">
+                <IconButton
+                  label="Video Call"
+                  onClick={() => dispatch(initiateCall({ remoteUser: otherUser!, type: 'VIDEO' }))}
+                  className="w-9.5 h-9.5 bg-transparent hover:shadow-neo-out-sm border-none text-text-secondary hover:text-text-primary"
+                >
                   <VideoIcon className="w-4.5 h-4.5" />
                 </IconButton>
                 <div className="w-px h-5.5 bg-black/5 dark:bg-white/5 mx-1" />
@@ -882,7 +988,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
             )}
 
             <div className="relative" ref={menuRef}>
-              <IconButton label="Menu" onClick={() => setShowMenu(!showMenu)} className="w-9.5 h-9.5 bg-transparent hover:shadow-neo-out-sm border-none text-text-secondary hover:text-text-primary">
+              <IconButton
+                label="Menu"
+                onClick={() => setShowMenu(!showMenu)}
+                className="w-9.5 h-9.5 bg-transparent hover:shadow-neo-out-sm border-none text-text-secondary hover:text-text-primary"
+              >
                 <MoreVertical className="w-4.5 h-4.5" />
               </IconButton>
 
@@ -895,23 +1005,54 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     transition={{ type: 'spring', damping: 20, stiffness: 350 }}
                     className="absolute top-full right-0 mt-2.5 w-52 bg-card border border-white/20 rounded-2xl shadow-neo-out-md z-50 overflow-hidden py-1.5"
                   >
-                    <button onClick={handleToggleMute} className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3">
-                      {isMuted ? <Bell className="w-4 h-4 text-text-secondary" /> : <BellOff className="w-4 h-4 text-text-secondary" />}
+                    <button
+                      onClick={handleToggleMute}
+                      className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
+                    >
+                      {isMuted ? (
+                        <Bell className="w-4 h-4 text-text-secondary" />
+                      ) : (
+                        <BellOff className="w-4 h-4 text-text-secondary" />
+                      )}
                       {isMuted ? 'Unmute notifications' : 'Mute notifications'}
                     </button>
-                    <button onClick={() => { setActivePanel(isGroup ? 'group_info' : 'contact_info'); setShowMenu(false); }} className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setActivePanel(isGroup ? 'group_info' : 'contact_info');
+                        setShowMenu(false);
+                      }}
+                      className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
+                    >
                       <Users className="w-4 h-4 text-text-secondary" />
                       Chat details
                     </button>
-                    <button onClick={() => { setActivePanel('search'); setShowMenu(false); }} className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setActivePanel('search');
+                        setShowMenu(false);
+                      }}
+                      className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
+                    >
                       <SearchIcon className="w-4 h-4 text-text-secondary" />
                       Search messages
                     </button>
-                    <button onClick={() => { setActivePanel('shared_media'); setShowMenu(false); }} className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setActivePanel('shared_media');
+                        setShowMenu(false);
+                      }}
+                      className="w-full text-left px-4.5 py-2.5 text-sm font-medium text-text-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
+                    >
                       <Paperclip className="w-4 h-4 text-text-secondary" />
                       Shared media
                     </button>
-                    <button onClick={() => { setActivePanel('ai_assistant'); setShowMenu(false); }} className="w-full text-left px-4.5 py-2.5 text-sm font-semibold text-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        setActivePanel('ai_assistant');
+                        setShowMenu(false);
+                      }}
+                      className="w-full text-left px-4.5 py-2.5 text-sm font-semibold text-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
+                    >
                       <Sparkles className="w-4 h-4 text-secondary" />
                       AI Assistant
                     </button>
@@ -931,7 +1072,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     {!isGroup && (
                       <>
                         <div className="h-px bg-black/5 dark:bg-white/5 mx-3.5 my-1.5" />
-                        <button onClick={handleToggleBlock} className="w-full text-left px-4.5 py-2.5 text-sm font-semibold text-error hover:bg-error/5 transition-colors flex items-center gap-3">
+                        <button
+                          onClick={handleToggleBlock}
+                          className="w-full text-left px-4.5 py-2.5 text-sm font-semibold text-error hover:bg-error/5 transition-colors flex items-center gap-3"
+                        >
                           <ShieldAlert className="w-4 h-4" />
                           {isBlockedByMe ? 'Unblock contact' : 'Block contact'}
                         </button>
@@ -950,25 +1094,40 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
               {/* Lock Icon + Title */}
               <div className="flex flex-col items-center mb-6">
                 <div className="w-18 h-18 bg-secondary/10 border border-secondary/20 rounded-2xl flex items-center justify-center mb-4 shadow-neo-out-sm">
-                  <svg className="w-9 h-9 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    className="w-9 h-9 text-primary-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </div>
                 <h2 className="text-2xl font-extrabold text-text-primary mb-1">
-                  {lockStep === 'setup_pin' || lockStep === 'setup_confirm' ? 'Set Up Vault Lock' :
-                   lockStep === 'forgot_password' ? 'Verify Password' :
-                   lockStep === 'forgot_otp' ? 'Enter OTP' :
-                   lockStep === 'forgot_new_pin' ? 'New Vault PIN' :
-                   'Vault Locked'}
+                  {lockStep === 'setup_pin' || lockStep === 'setup_confirm'
+                    ? 'Set Up Vault Lock'
+                    : lockStep === 'forgot_password'
+                      ? 'Verify Password'
+                      : lockStep === 'forgot_otp'
+                        ? 'Enter OTP'
+                        : lockStep === 'forgot_new_pin'
+                          ? 'New Vault PIN'
+                          : 'Vault Locked'}
                 </h2>
                 <p className="text-xs font-medium text-text-secondary text-center leading-relaxed">
-                  {lockStep === 'setup_pin' ? 'Enter a 4–8 digit secure PIN to lock this chat.' :
-                   lockStep === 'setup_confirm' ? 'Confirm your secure PIN.' :
-                   lockStep === 'forgot_password' ? 'Enter your password to verify ownership.' :
-                   lockStep === 'forgot_otp' ? 'Enter the verification code sent to your email.' :
-                   lockStep === 'forgot_new_pin' ? 'Choose a new Vault lock PIN.' :
-                   'This conversation is secured under Zira Vault.'}
+                  {lockStep === 'setup_pin'
+                    ? 'Enter a 4–8 digit secure PIN to lock this chat.'
+                    : lockStep === 'setup_confirm'
+                      ? 'Confirm your secure PIN.'
+                      : lockStep === 'forgot_password'
+                        ? 'Enter your password to verify ownership.'
+                        : lockStep === 'forgot_otp'
+                          ? 'Enter the verification code sent to your email.'
+                          : lockStep === 'forgot_new_pin'
+                            ? 'Choose a new Vault lock PIN.'
+                            : 'This conversation is secured under Zira Vault.'}
                 </p>
               </div>
 
@@ -985,7 +1144,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     className="text-center text-2xl tracking-[0.5em] font-mono"
                     autoFocus
                   />
-                  <Button type="submit" className="w-full" disabled={lockPinInput.length < 4 || isVerifyingPin}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={lockPinInput.length < 4 || isVerifyingPin}
+                  >
                     {isVerifyingPin ? 'Verifying…' : 'Unlock'}
                   </Button>
                   <div className="text-center">
@@ -1002,7 +1165,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
 
               {/* ─── First-time Setup: Enter PIN ─── */}
               {lockStep === 'setup_pin' && (
-                <form onSubmit={(e) => { e.preventDefault(); if (setupPinInput.length >= 4) setLockStep('setup_confirm'); }} className="space-y-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (setupPinInput.length >= 4) setLockStep('setup_confirm');
+                  }}
+                  className="space-y-4"
+                >
                   <Input
                     type="password"
                     inputMode="numeric"
@@ -1017,7 +1186,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     Continue
                   </Button>
                   <div className="text-center">
-                    <button type="button" onClick={() => setLockStep('enter_pin')} className="text-xs text-text-muted hover:underline">Cancel</button>
+                    <button
+                      type="button"
+                      onClick={() => setLockStep('enter_pin')}
+                      className="text-xs text-text-muted hover:underline"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </form>
               )}
@@ -1035,11 +1210,21 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     className="text-center text-2xl tracking-[0.5em] font-mono"
                     autoFocus
                   />
-                  <Button type="submit" className="w-full" disabled={setupPinConfirm.length < 4 || isSettingUpPin}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={setupPinConfirm.length < 4 || isSettingUpPin}
+                  >
                     {isSettingUpPin ? 'Setting up…' : 'Activate Chat Lock'}
                   </Button>
                   <div className="text-center">
-                    <button type="button" onClick={() => setLockStep('setup_pin')} className="text-xs text-text-muted hover:underline">Back</button>
+                    <button
+                      type="button"
+                      onClick={() => setLockStep('setup_pin')}
+                      className="text-xs text-text-muted hover:underline"
+                    >
+                      Back
+                    </button>
                   </div>
                 </form>
               )}
@@ -1054,11 +1239,23 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     placeholder="Account password"
                     autoFocus
                   />
-                  <Button type="submit" className="w-full" disabled={!forgotPasswordInput || isVerifyingPassword || isSendingOtp}>
-                    {isVerifyingPassword || isSendingOtp ? 'Please wait…' : 'Send Verification Code'}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={!forgotPasswordInput || isVerifyingPassword || isSendingOtp}
+                  >
+                    {isVerifyingPassword || isSendingOtp
+                      ? 'Please wait…'
+                      : 'Send Verification Code'}
                   </Button>
                   <div className="text-center">
-                    <button type="button" onClick={() => setLockStep('enter_pin')} className="text-xs text-text-muted hover:underline">Back</button>
+                    <button
+                      type="button"
+                      onClick={() => setLockStep('enter_pin')}
+                      className="text-xs text-text-muted hover:underline"
+                    >
+                      Back
+                    </button>
                   </div>
                 </form>
               )}
@@ -1076,11 +1273,21 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     className="text-center text-2xl tracking-[0.5em] font-mono"
                     autoFocus
                   />
-                  <Button type="submit" className="w-full" disabled={forgotOtpInput.length !== 6 || isVerifyingOtp}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={forgotOtpInput.length !== 6 || isVerifyingOtp}
+                  >
                     {isVerifyingOtp ? 'Verifying…' : 'Verify Code'}
                   </Button>
                   <div className="text-center">
-                    <button type="button" onClick={() => setLockStep('forgot_password')} className="text-xs text-text-muted hover:underline">Back</button>
+                    <button
+                      type="button"
+                      onClick={() => setLockStep('forgot_password')}
+                      className="text-xs text-text-muted hover:underline"
+                    >
+                      Back
+                    </button>
                   </div>
                 </form>
               )}
@@ -1107,7 +1314,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                     placeholder="Confirm new PIN"
                     className="text-center text-2xl tracking-[0.5em] font-mono"
                   />
-                  <Button type="submit" className="w-full" disabled={forgotNewPinInput.length < 4 || isResettingPin}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={forgotNewPinInput.length < 4 || isResettingPin}
+                  >
                     {isResettingPin ? 'Resetting…' : 'Reset PIN & Unlock'}
                   </Button>
                 </form>
@@ -1130,33 +1341,54 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
           </div>
         ) : (
           <>
-            <div ref={parentRef} className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-6 py-4 bg-background relative">
+            <div
+              ref={parentRef}
+              className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-6 py-4 bg-background relative"
+            >
               {isLoadingMessages && !messages.length ? (
                 <div className="flex justify-center p-8">
                   <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : (
-                <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                <div
+                  style={{
+                    height: `${virtualizer.getTotalSize()}px`,
+                    width: '100%',
+                    position: 'relative',
+                  }}
+                >
                   {virtualItems.map((virtualItem) => {
                     const message = messages[virtualItem.index];
                     const isOwnMessage = message.senderId === currentUser.id;
                     const prevMessage = messages[virtualItem.index - 1];
-                    const showSenderName = isGroup && !isOwnMessage && (!prevMessage || prevMessage.senderId !== message.senderId);
+                    const showSenderName =
+                      isGroup &&
+                      !isOwnMessage &&
+                      (!prevMessage || prevMessage.senderId !== message.senderId);
 
                     return (
                       <div
                         key={message.id}
                         ref={virtualizer.measureElement}
                         data-index={virtualItem.index}
-                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualItem.start}px)` }}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          transform: `translateY(${virtualItem.start}px)`,
+                        }}
                       >
                         <MessageBubble
                           message={message}
                           isOwnMessage={isOwnMessage}
                           showSenderName={showSenderName}
-                   sender={participantsMap.get(message.senderId)}
+                          sender={participantsMap.get(message.senderId)}
                           onReply={(msg) => setReplyingMessage(msg)}
-                          onForward={(msg) => { setForwardingMessage(msg); setIsForwardModalOpen(true); }}
+                          onForward={(msg) => {
+                            setForwardingMessage(msg);
+                            setIsForwardModalOpen(true);
+                          }}
                           onScrollToMessage={handleScrollToMessage}
                           onMediaClick={(msg) => setPreviewMessage(msg)}
                           onInfoClick={(msg) => {
@@ -1182,7 +1414,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                   className="flex justify-between items-center bg-brand-indigo/5 border-l-3 border-brand-indigo p-3.5 mb-3.5 rounded-r-2xl text-xs text-text-primary"
                 >
                   <div className="flex-1 overflow-hidden">
-                    <span className="font-bold text-brand-indigo block text-[10px] uppercase tracking-wider">Replying to {replyingMessage.senderId === currentUser.id ? 'yourself' : getContactName(replyingMessage.senderId, participantsMap.get(replyingMessage.senderId))}</span>
+                    <span className="font-bold text-brand-indigo block text-[10px] uppercase tracking-wider">
+                      Replying to{' '}
+                      {replyingMessage.senderId === currentUser.id
+                        ? 'yourself'
+                        : getContactName(
+                            replyingMessage.senderId,
+                            participantsMap.get(replyingMessage.senderId)
+                          )}
+                    </span>
                     <p className="truncate text-xs text-text-secondary mt-0.5 font-medium">
                       {replyingMessage.type === 'IMAGE' && '📷 Photo'}
                       {replyingMessage.type === 'VIDEO' && '🎥 Video'}
@@ -1192,13 +1432,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                       {replyingMessage.type === 'TEXT' && replyingMessage.content}
                     </p>
                   </div>
-                  <IconButton label="Cancel reply" onClick={() => setReplyingMessage(null)} className="w-8 h-8 bg-transparent hover:shadow-neo-out-sm border-none">
+                  <IconButton
+                    label="Cancel reply"
+                    onClick={() => setReplyingMessage(null)}
+                    className="w-8 h-8 bg-transparent hover:shadow-neo-out-sm border-none"
+                  >
                     <X className="w-4 h-4 text-text-muted hover:text-text-primary" />
                   </IconButton>
                 </motion.div>
               )}
-
-
 
               {/* GIF Picker (above composer) */}
               <GifPicker
@@ -1212,7 +1454,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                   <ShieldAlert className="w-5.5 h-5.5 text-error shrink-0" />
                   <span className="font-bold text-text-primary">You blocked this contact</span>
                   <span className="text-xs">Unblock this contact to start sending messages.</span>
-                  <button onClick={handleToggleBlock} className="mt-1 px-4.5 py-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-all duration-300 text-xs shadow-sm hover:shadow">
+                  <button
+                    onClick={handleToggleBlock}
+                    className="mt-1 px-4.5 py-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-all duration-300 text-xs shadow-sm hover:shadow"
+                  >
                     Unblock Contact
                   </button>
                 </div>
@@ -1220,22 +1465,40 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                 <div className="flex flex-col items-center justify-center py-5 bg-card border border-white/20 shadow-neo-out-sm rounded-2xl text-text-secondary text-sm gap-1.5 text-center px-6 mx-2 mb-2.5">
                   <ShieldAlert className="w-5.5 h-5.5 text-text-muted shrink-0 opacity-70" />
                   <span className="font-bold text-text-primary">This contact is unavailable</span>
-                  <span className="text-xs font-medium">You cannot send messages to this conversation.</span>
+                  <span className="text-xs font-medium">
+                    You cannot send messages to this conversation.
+                  </span>
                 </div>
               ) : audioRecorder.isRecording || audioRecorder.audioBlob ? (
                 <VoiceRecorder
-                  isRecording={audioRecorder.isRecording} recordingTime={audioRecorder.recordingTime} audioBlob={audioRecorder.audioBlob}
-                  onStart={audioRecorder.startRecording} onStop={audioRecorder.stopRecording} onCancel={audioRecorder.cancelRecording} onSend={handleSendVoiceNote} getAnalyserData={audioRecorder.getAnalyserData}
+                  isRecording={audioRecorder.isRecording}
+                  recordingTime={audioRecorder.recordingTime}
+                  audioBlob={audioRecorder.audioBlob}
+                  onStart={audioRecorder.startRecording}
+                  onStop={audioRecorder.stopRecording}
+                  onCancel={audioRecorder.cancelRecording}
+                  onSend={handleSendVoiceNote}
+                  getAnalyserData={audioRecorder.getAnalyserData}
                 />
               ) : (
                 <form onSubmit={handleSend} className="flex items-center gap-2.5 md:gap-3.5 w-full">
-                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} multiple className="hidden" accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.txt" />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    multiple
+                    className="hidden"
+                    accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.txt"
+                  />
                   <div className="relative" ref={attachMenuRef}>
                     <IconButton
                       label="Attach"
                       type="button"
                       onClick={() => setShowAttachMenu(!showAttachMenu)}
-                      className={cn("w-10 h-10 shrink-0 bg-transparent border border-black/5 dark:border-white/5 hover:shadow-neo-out-sm rounded-xl transition-all", showAttachMenu && "shadow-neo-in-sm")}
+                      className={cn(
+                        'w-10 h-10 shrink-0 bg-transparent border border-black/5 dark:border-white/5 hover:shadow-neo-out-sm rounded-xl transition-all',
+                        showAttachMenu && 'shadow-neo-in-sm'
+                      )}
                     >
                       <Paperclip className="w-5 h-5 text-text-secondary" />
                     </IconButton>
@@ -1263,7 +1526,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                           <button
                             type="button"
                             onClick={(e) => {
-                              console.log('[AttachMenu] Clicked Share Contact button. Setting isContactShareOpen to true.');
+                              console.log(
+                                '[AttachMenu] Clicked Share Contact button. Setting isContactShareOpen to true.'
+                              );
                               setIsContactShareOpen(true);
                               setShowAttachMenu(false);
                             }}
@@ -1280,17 +1545,30 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                   <div className="flex-grow relative flex items-center">
                     <input
                       ref={messageInputRef}
-                      type="text" value={text} onChange={(e) => handleInputChange(e.target.value)}
+                      type="text"
+                      value={text}
+                      onChange={(e) => handleInputChange(e.target.value)}
                       placeholder="Type a message..."
                       className="w-full text-text-primary bg-composer pl-4.5 pr-22 py-3 rounded-xl neo-in-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 transition-all text-sm placeholder:text-text-muted/50"
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                      <IconButton label="Emoji" type="button" onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false); }} className="w-8.5 h-8.5 bg-transparent hover:shadow-neo-out-sm border-none">
+                      <IconButton
+                        label="Emoji"
+                        type="button"
+                        onClick={() => {
+                          setShowEmojiPicker(!showEmojiPicker);
+                          setShowGifPicker(false);
+                        }}
+                        className="w-8.5 h-8.5 bg-transparent hover:shadow-neo-out-sm border-none"
+                      >
                         <Smile className="w-[19px] h-[19px] text-text-muted hover:text-text-primary transition-colors" />
                       </IconButton>
                       <button
                         type="button"
-                        onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false); }}
+                        onClick={() => {
+                          setShowGifPicker(!showGifPicker);
+                          setShowEmojiPicker(false);
+                        }}
                         className="px-2 py-1 rounded-lg text-[10px] font-extrabold text-text-muted hover:text-text-primary hover:shadow-neo-out-sm transition-all mr-1 uppercase tracking-wider"
                       >
                         GIF
@@ -1299,13 +1577,28 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                   </div>
 
                   {text.trim() || previewFiles.length > 0 ? (
-                    <IconButton label="Send message" type="submit" disabled={isUploading} className="neo-btn neo-btn-primary w-10.5 h-10.5 rounded-xl disabled:opacity-40 shrink-0 flex items-center justify-center border border-white/10">
-                      {isUploading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Send className="w-4.5 h-4.5 ml-0.5 text-white" />}
+                    <IconButton
+                      label="Send message"
+                      type="submit"
+                      disabled={isUploading}
+                      className="neo-btn neo-btn-primary w-10.5 h-10.5 rounded-xl disabled:opacity-40 shrink-0 flex items-center justify-center border border-white/10"
+                    >
+                      {isUploading ? (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Send className="w-4.5 h-4.5 ml-0.5 text-white" />
+                      )}
                     </IconButton>
                   ) : (
                     <VoiceRecorder
-                      isRecording={false} recordingTime={0} audioBlob={null}
-                      onStart={audioRecorder.startRecording} onStop={audioRecorder.stopRecording} onCancel={audioRecorder.cancelRecording} onSend={handleSendVoiceNote} getAnalyserData={audioRecorder.getAnalyserData}
+                      isRecording={false}
+                      recordingTime={0}
+                      audioBlob={null}
+                      onStart={audioRecorder.startRecording}
+                      onStop={audioRecorder.stopRecording}
+                      onCancel={audioRecorder.cancelRecording}
+                      onSend={handleSendVoiceNote}
+                      getAnalyserData={audioRecorder.getAnalyserData}
                     />
                   )}
                 </form>
@@ -1314,12 +1607,100 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
               {/* Emoji Picker (below composer) */}
               {showEmojiPicker && (
                 <div className="border border-white/20 bg-card p-3 mt-3.5 rounded-2xl grid grid-cols-8 gap-2 max-h-[160px] overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom-2 duration-300 shadow-neo-out-md">
-                  {['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '😵', '🤢', '🤮', '🤧', '😷', '🤒', '🤕'].map((emoji) => (
+                  {[
+                    '😀',
+                    '😃',
+                    '😄',
+                    '😁',
+                    '😆',
+                    '😅',
+                    '😂',
+                    '🤣',
+                    '😊',
+                    '😇',
+                    '🙂',
+                    '🙃',
+                    '😉',
+                    '😌',
+                    '😍',
+                    '🥰',
+                    '😘',
+                    '😗',
+                    '😙',
+                    '😚',
+                    '😋',
+                    '😛',
+                    '😝',
+                    '😜',
+                    '🤪',
+                    '🤨',
+                    '🧐',
+                    '🤓',
+                    '😎',
+                    '🤩',
+                    '🥳',
+                    '😏',
+                    '😒',
+                    '😞',
+                    '😔',
+                    '😟',
+                    '😕',
+                    '🙁',
+                    '☹️',
+                    '😣',
+                    '😖',
+                    '😫',
+                    '😩',
+                    '🥺',
+                    '😢',
+                    '😭',
+                    '😤',
+                    '😠',
+                    '😡',
+                    '🤬',
+                    '🤯',
+                    '😳',
+                    '🥵',
+                    '🥶',
+                    '😱',
+                    '😨',
+                    '😰',
+                    '😥',
+                    '😓',
+                    '🤗',
+                    '🤔',
+                    '🤭',
+                    '🤫',
+                    '🤥',
+                    '😶',
+                    '😐',
+                    '😑',
+                    '😬',
+                    '🙄',
+                    '😯',
+                    '😦',
+                    '😧',
+                    '😮',
+                    '😲',
+                    '🥱',
+                    '😴',
+                    '🤤',
+                    '😪',
+                    '😵',
+                    '🤐',
+                    '😵',
+                    '🤢',
+                    '🤮',
+                    '🤧',
+                    '😷',
+                    '🤒',
+                    '🤕',
+                  ].map((emoji) => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => {
-                        setText(prev => prev + emoji);
+                        setText((prev) => prev + emoji);
                       }}
                       className="w-8.5 h-8.5 flex items-center justify-center hover:shadow-neo-out-sm rounded-xl text-lg transition-colors duration-200"
                     >
@@ -1345,7 +1726,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
             className="h-full bg-surface shrink-0 overflow-hidden relative border-l border-border"
           >
             {activePanel === 'contact_info' && (
-              <ContactDetailsPanel isOpen={true} onClose={() => setActivePanel(null)} onShareContact={handleOpenShareContactFromPanel} />
+              <ContactDetailsPanel
+                isOpen={true}
+                onClose={() => setActivePanel(null)}
+                onShareContact={handleOpenShareContactFromPanel}
+              />
             )}
             {activePanel === 'group_info' && (
               <GroupDetailsPanel isOpen={true} onClose={() => setActivePanel(null)} />
@@ -1359,30 +1744,44 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
               />
             )}
             {activePanel === 'shared_media' && (
-              <ContactDetailsPanel isOpen={true} onClose={() => setActivePanel(null)} onShareContact={handleOpenShareContactFromPanel} />
+              <ContactDetailsPanel
+                isOpen={true}
+                onClose={() => setActivePanel(null)}
+                onShareContact={handleOpenShareContactFromPanel}
+              />
             )}
             {activePanel === 'message_info' && selectedInfoMessage && (
               <MessageInfoPanel
-                onClose={() => { setActivePanel(null); setSelectedInfoMessage(null); }}
+                onClose={() => {
+                  setActivePanel(null);
+                  setSelectedInfoMessage(null);
+                }}
                 message={selectedInfoMessage}
                 getContactName={(id) => getContactName(id, participantsMap.get(id))}
               />
             )}
             {activePanel === 'ai_assistant' && (
-              <AIAssistantPanel
-                onClose={() => setActivePanel(null)}
-                chatName={chatName}
-              />
+              <AIAssistantPanel onClose={() => setActivePanel(null)} chatName={chatName} />
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
       {isForwardModalOpen && forwardingMessage && (
-        <Dialog isOpen={isForwardModalOpen} onClose={() => { setIsForwardModalOpen(false); setForwardingMessage(null); }} title="Forward Message" className="max-w-md">
+        <Dialog
+          isOpen={isForwardModalOpen}
+          onClose={() => {
+            setIsForwardModalOpen(false);
+            setForwardingMessage(null);
+          }}
+          title="Forward Message"
+          className="max-w-md"
+        >
           <div className="flex flex-col h-[350px]">
             <div className="p-3 bg-surface-hover border border-border rounded-xl mb-4 text-sm text-text-secondary truncate">
-              <span className="font-semibold block text-xs text-text-muted mb-0.5">Message to forward</span>
+              <span className="font-semibold block text-xs text-text-muted mb-0.5">
+                Message to forward
+              </span>
               {forwardingMessage.content || `[${forwardingMessage.type}]`}
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1">
@@ -1392,15 +1791,28 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ onBack }) => {
                   chatName = chat.groupMetadata?.name || 'Group Chat';
                 } else {
                   const other = chat.participants.find((p: any) => p.id !== currentUser.id);
-                  chatName = getContactName(other?.id || (other as any)?._id, other) || 'Direct Chat';
+                  chatName =
+                    getContactName(other?.id || (other as any)?._id, other) || 'Direct Chat';
                 }
                 return (
-                  <div key={chat.id} className="flex items-center justify-between p-2.5 hover:bg-surface-hover rounded-xl transition-colors">
+                  <div
+                    key={chat.id}
+                    className="flex items-center justify-between p-2.5 hover:bg-surface-hover rounded-xl transition-colors"
+                  >
                     <span className="text-sm font-medium text-text-primary">{chatName}</span>
                     <Button
                       size="sm"
                       onClick={() => {
-                        sendMessage(chat.id, forwardingMessage.content, forwardingMessage.type, forwardingMessage.media, undefined, true, undefined, forwardingMessage.gifId);
+                        sendMessage(
+                          chat.id,
+                          forwardingMessage.content,
+                          forwardingMessage.type,
+                          forwardingMessage.media,
+                          undefined,
+                          true,
+                          undefined,
+                          forwardingMessage.gifId
+                        );
                         toast.success('Message forwarded');
                         setIsForwardModalOpen(false);
                         setForwardingMessage(null);

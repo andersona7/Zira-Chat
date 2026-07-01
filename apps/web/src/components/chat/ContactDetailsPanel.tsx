@@ -1,17 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, Edit2, Check, X, Trash2, Heart, HeartOff, 
-  Bell, BellOff, Lock, Unlock, Ban, Share2, Grid, 
-  List, Search, Download, FileText, Link as LinkIcon, 
-  Eye, RefreshCw, Phone, Mail, File, Volume2, ShieldAlert
+import {
+  ArrowLeft,
+  Edit2,
+  Check,
+  X,
+  Trash2,
+  Heart,
+  HeartOff,
+  Bell,
+  BellOff,
+  Lock,
+  Unlock,
+  Ban,
+  Share2,
+  Grid,
+  List,
+  Search,
+  Download,
+  FileText,
+  Link as LinkIcon,
+  Eye,
+  RefreshCw,
+  Phone,
+  Mail,
+  File,
+  Volume2,
+  ShieldAlert,
 } from 'lucide-react';
 import { Avatar, IconButton, Dialog, Button, Input } from '@zira/ui';
 import { SecureMedia } from '../common/SecureMedia';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
-import { useGetContactsQuery, useUpdateContactMutation, useDeleteContactMutation } from '@/store/api/contactApi';
-import { useClearChatMutation, useGetSharedMediaQuery, useLockChatMutation, useUnlockChatMutation, chatApi } from '@/store/api/chatApi';
+import {
+  useGetContactsQuery,
+  useUpdateContactMutation,
+  useDeleteContactMutation,
+} from '@/store/api/contactApi';
+import {
+  useClearChatMutation,
+  useGetSharedMediaQuery,
+  useLockChatMutation,
+  useUnlockChatMutation,
+  chatApi,
+} from '@/store/api/chatApi';
 import { useBlockUserMutation, useUnblockUserMutation } from '@/store/api/userApi';
 import { setActiveChat } from '@/store/slices/chatSlice';
 import { selectActiveChat } from '@/store/selectors';
@@ -27,7 +59,11 @@ interface ContactDetailsPanelProps {
   onShareContact?: () => void;
 }
 
-export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen, onClose, onShareContact }) => {
+export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({
+  isOpen,
+  onClose,
+  onShareContact,
+}) => {
   const activeChat = useSelector(selectActiveChat);
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const token = useSelector((state: RootState) => state.auth.token);
@@ -86,11 +122,14 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
         }
       }
 
-      const response = await fetch(`/api/v1/media/download/${encodeURIComponent(mediaId)}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || ''}/api/v1/media/download/${encodeURIComponent(mediaId)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       if (!response.ok) throw new Error('Download failed');
       const resData = await response.json();
       if (resData.success && resData.url) {
@@ -124,11 +163,14 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
         }
       }
 
-      const response = await fetch(`/api/v1/media/${encodeURIComponent(mediaId)}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || ''}/api/v1/media/${encodeURIComponent(mediaId)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       if (!response.ok) throw new Error('Preview failed');
       const resData = await response.json();
       if (resData.success && resData.url) {
@@ -146,13 +188,17 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
   const [mediaPage, setMediaPage] = useState(1);
 
   // Fetch shared media
-  const { data: mediaData, isFetching: isFetchingMedia, refetch: refetchMedia } = useGetSharedMediaQuery(
-    { 
-      chatId: activeChat?.id || '', 
-      type: mediaTab, 
-      page: mediaPage, 
-      limit: 20, 
-      search: mediaSearch 
+  const {
+    data: mediaData,
+    isFetching: isFetchingMedia,
+    refetch: refetchMedia,
+  } = useGetSharedMediaQuery(
+    {
+      chatId: activeChat?.id || '',
+      type: mediaTab,
+      page: mediaPage,
+      limit: 20,
+      search: mediaSearch,
     },
     { skip: !activeChat }
   );
@@ -171,14 +217,15 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
       if (mediaPage === 1) {
         setAllItems(newItems);
       } else {
-        setAllItems(prev => [...prev, ...newItems]);
+        setAllItems((prev) => [...prev, ...newItems]);
       }
     }
   }, [mediaData, mediaPage]);
 
   if (!activeChat || !currentUser || !otherUser) return null;
 
-  const isBlockedByMe = currentUser.blockedUsers?.includes(otherUser.id) || contact?.isBlocked || false;
+  const isBlockedByMe =
+    currentUser.blockedUsers?.includes(otherUser.id) || contact?.isBlocked || false;
   const isFavourite = contact?.isFavourite || false;
   const isMuted = contact?.isMuted || false;
   const isLocked = chatIsLocked;
@@ -215,13 +262,21 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
       await updateContact({ id: contact.id, isMuted: !isMuted }).unwrap();
       // Keep chat mute in sync
       if (activeChat && token) {
-        const res = await fetch(`/api/v1/chats/${activeChat.id}/mute`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL || ''}/api/v1/chats/${activeChat.id}/mute`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         if (data.success && currentUser) {
-          dispatch(setCredentials({ user: { ...currentUser, mutedChats: data.data.mutedChats }, accessToken: token }));
+          dispatch(
+            setCredentials({
+              user: { ...currentUser, mutedChats: data.data.mutedChats },
+              accessToken: token,
+            })
+          );
         }
       }
       toast.success(!isMuted ? 'Notifications muted' : 'Notifications unmuted');
@@ -268,11 +323,15 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
       if (isBlockedByMe) {
         await unblockUser(otherUser.id).unwrap();
         if (contact) await updateContact({ id: contact.id, isBlocked: false }).unwrap();
-        toast.success(`${getContactName(otherUser.id || (otherUser as any)._id, otherUser)} unblocked`);
+        toast.success(
+          `${getContactName(otherUser.id || (otherUser as any)._id, otherUser)} unblocked`
+        );
       } else {
         await blockUser(otherUser.id).unwrap();
         if (contact) await updateContact({ id: contact.id, isBlocked: true }).unwrap();
-        toast.success(`${getContactName(otherUser.id || (otherUser as any)._id, otherUser)} blocked`);
+        toast.success(
+          `${getContactName(otherUser.id || (otherUser as any)._id, otherUser)} blocked`
+        );
       }
     } catch (e) {
       toast.error('Failed to update block status');
@@ -325,7 +384,7 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
 
   const loadMoreMedia = () => {
     if (mediaData?.data?.pagination?.hasMore && !isFetchingMedia) {
-      setMediaPage(prev => prev + 1);
+      setMediaPage((prev) => prev + 1);
     }
   };
 
@@ -350,13 +409,12 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
 
       {/* Content Body */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-        
         {/* Profile Card */}
         <div className="flex flex-col items-center text-center space-y-4 pb-6 border-b border-border">
-          <Avatar 
-            src={otherUser.avatarUrl || otherUser.profilePhoto} 
-            fallback={getContactName(otherUser.id || (otherUser as any)._id, otherUser) || '?'} 
-            size="xl" 
+          <Avatar
+            src={otherUser.avatarUrl || otherUser.profilePhoto}
+            fallback={getContactName(otherUser.id || (otherUser as any)._id, otherUser) || '?'}
+            size="xl"
             className="w-24 h-24 shadow-md"
           />
 
@@ -371,7 +429,11 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
                   className="text-center"
                   autoFocus
                 />
-                <IconButton label="Save" onClick={handleSaveNickname} className="bg-primary-500 text-white hover:bg-primary-600">
+                <IconButton
+                  label="Save"
+                  onClick={handleSaveNickname}
+                  className="bg-primary-500 text-white hover:bg-primary-600"
+                >
                   <Check className="w-4 h-4" />
                 </IconButton>
                 <IconButton label="Cancel" onClick={() => setIsEditingName(false)}>
@@ -403,10 +465,14 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
         {/* Bio & Details */}
         <div className="space-y-4 pb-6 border-b border-border">
           <div>
-            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">About</label>
-            <p className="text-sm text-text-primary mt-1">{otherUser.bio || otherUser.about || 'Hey there! I am using Zira Chat.'}</p>
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              About
+            </label>
+            <p className="text-sm text-text-primary mt-1">
+              {otherUser.bio || otherUser.about || 'Hey there! I am using Zira Chat.'}
+            </p>
           </div>
-          
+
           {otherUser.email && (
             <div className="flex items-center gap-3 text-text-secondary">
               <Mail className="w-4 h-4 text-text-muted" />
@@ -417,10 +483,12 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
 
         {/* Settings/Toggles */}
         <div className="space-y-2 pb-6 border-b border-border">
-          <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Settings</h4>
+          <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+            Settings
+          </h4>
 
           {/* Favorite Toggle */}
-          <button 
+          <button
             onClick={handleToggleFavourite}
             className="w-full flex items-center justify-between p-3 hover:bg-surface-hover rounded-xl transition-colors text-left"
           >
@@ -429,10 +497,14 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
                 key={isFavourite ? 'fav' : 'unfav'}
                 initial={{ scale: 0.8, opacity: 0.8 }}
                 animate={{ scale: [1, 1.3, 0.95, 1], opacity: 1 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
                 className="flex items-center justify-center"
               >
-                {isFavourite ? <Heart className="w-5 h-5 text-error fill-current" /> : <Heart className="w-5 h-5 text-text-secondary" />}
+                {isFavourite ? (
+                  <Heart className="w-5 h-5 text-error fill-current" />
+                ) : (
+                  <Heart className="w-5 h-5 text-text-secondary" />
+                )}
               </motion.div>
               <span className="text-sm text-text-primary font-medium">
                 {isFavourite ? 'Remove from Favourite' : 'Add to Favourite'}
@@ -442,24 +514,32 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
           </button>
 
           {/* Mute Toggle */}
-          <button 
+          <button
             onClick={handleToggleMute}
             className="w-full flex items-center justify-between p-3 hover:bg-surface-hover rounded-xl transition-colors text-left"
           >
             <div className="flex items-center gap-3">
-              {isMuted ? <BellOff className="w-5 h-5 text-warning" /> : <Bell className="w-5 h-5 text-text-secondary" />}
+              {isMuted ? (
+                <BellOff className="w-5 h-5 text-warning" />
+              ) : (
+                <Bell className="w-5 h-5 text-text-secondary" />
+              )}
               <span className="text-sm text-text-primary font-medium">Mute Notifications</span>
             </div>
             <span className="text-xs text-text-muted">{isMuted ? 'Muted' : 'Off'}</span>
           </button>
 
           {/* Chat Lock Toggle */}
-          <button 
+          <button
             onClick={handleToggleLock}
             className="w-full flex items-center justify-between p-3 hover:bg-surface-hover rounded-xl transition-colors text-left"
           >
             <div className="flex items-center gap-3">
-              {isLocked ? <Lock className="w-5 h-5 text-primary-500" /> : <Unlock className="w-5 h-5 text-text-secondary" />}
+              {isLocked ? (
+                <Lock className="w-5 h-5 text-primary-500" />
+              ) : (
+                <Unlock className="w-5 h-5 text-text-secondary" />
+              )}
               <span className="text-sm text-text-primary font-medium">Chat Lock</span>
             </div>
             <span className="text-xs text-text-muted">{isLocked ? 'Locked' : 'Off'}</span>
@@ -467,7 +547,7 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
 
           {/* Exit Locked Chat — visible when locked and locker is currently unlocked (user can re-lock manually) */}
           {isLocked && isLockerUnlocked && (
-            <button 
+            <button
               onClick={() => {
                 if (!activeChat) return;
                 exitLockedChat(activeChat.id);
@@ -485,7 +565,7 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
           )}
 
           {/* Block User */}
-          <button 
+          <button
             onClick={handleToggleBlock}
             className="w-full flex items-center justify-between p-3 hover:bg-surface-hover rounded-xl transition-colors text-left"
           >
@@ -501,18 +581,20 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
         {/* Shared Media Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">Shared Media</h4>
+            <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              Shared Media
+            </h4>
             <div className="flex items-center gap-1">
-              <IconButton 
-                label="Grid View" 
-                onClick={() => setIsGridView(true)} 
+              <IconButton
+                label="Grid View"
+                onClick={() => setIsGridView(true)}
                 className={`w-7 h-7 ${isGridView ? 'text-primary-500 bg-surface-hover' : 'text-text-muted'}`}
               >
                 <Grid className="w-4 h-4" />
               </IconButton>
-              <IconButton 
-                label="List View" 
-                onClick={() => setIsGridView(false)} 
+              <IconButton
+                label="List View"
+                onClick={() => setIsGridView(false)}
                 className={`w-7 h-7 ${!isGridView ? 'text-primary-500 bg-surface-hover' : 'text-text-muted'}`}
               >
                 <List className="w-4 h-4" />
@@ -522,19 +604,19 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
 
           {/* Categories Tabs */}
           <div className="flex border-b border-border">
-            <button 
+            <button
               onClick={() => setMediaTab('media')}
               className={`flex-1 pb-2 text-xs font-semibold transition-all border-b-2 text-center ${mediaTab === 'media' ? 'border-primary-500 text-primary-500' : 'border-transparent text-text-muted'}`}
             >
               Media ({mediaData?.data?.counts?.media || 0})
             </button>
-            <button 
+            <button
               onClick={() => setMediaTab('documents')}
               className={`flex-1 pb-2 text-xs font-semibold transition-all border-b-2 text-center ${mediaTab === 'documents' ? 'border-primary-500 text-primary-500' : 'border-transparent text-text-muted'}`}
             >
               Docs ({mediaData?.data?.counts?.documents || 0})
             </button>
-            <button 
+            <button
               onClick={() => setMediaTab('links')}
               className={`flex-1 pb-2 text-xs font-semibold transition-all border-b-2 text-center ${mediaTab === 'links' ? 'border-primary-500 text-primary-500' : 'border-transparent text-text-muted'}`}
             >
@@ -566,16 +648,30 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
               {isGridView && mediaTab === 'media' ? (
                 <div className="grid grid-cols-4 gap-2">
                   {allItems.map((item: any) => (
-                    <div key={item.id} className="relative aspect-square bg-surface-hover rounded-lg overflow-hidden group border border-border">
+                    <div
+                      key={item.id}
+                      className="relative aspect-square bg-surface-hover rounded-lg overflow-hidden group border border-border"
+                    >
                       {item.type === 'IMAGE' ? (
-                        <SecureMedia type="img" src={item.media?.mediaId || item.media?.url} alt="" className="w-full h-full object-cover" />
+                        <SecureMedia
+                          type="img"
+                          src={item.media?.mediaId || item.media?.url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-surface-hover">
                           <FileText className="w-6 h-6 text-text-secondary" />
                         </div>
                       )}
-                      <button 
-                        onClick={(e) => handleDownload(e, item.media?.mediaId || item.media?.url, item.media?.name)}
+                      <button
+                        onClick={(e) =>
+                          handleDownload(
+                            e,
+                            item.media?.mediaId || item.media?.url,
+                            item.media?.name
+                          )
+                        }
                         className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1.5 transition-all text-white text-xs"
                       >
                         <Download className="w-4 h-4" />
@@ -586,32 +682,45 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
               ) : (
                 <div className="space-y-2">
                   {allItems.map((item: any) => (
-                    <div key={item.id} className="flex items-center justify-between p-2.5 bg-surface-hover rounded-xl border border-border">
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-2.5 bg-surface-hover rounded-xl border border-border"
+                    >
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="p-2 bg-background rounded-lg text-text-secondary">
-                          {item.type === 'DOCUMENT' ? <FileText className="w-5 h-5" /> : item.type === 'TEXT' ? <LinkIcon className="w-5 h-5 text-primary-500" /> : <File className="w-5 h-5" />}
+                          {item.type === 'DOCUMENT' ? (
+                            <FileText className="w-5 h-5" />
+                          ) : item.type === 'TEXT' ? (
+                            <LinkIcon className="w-5 h-5 text-primary-500" />
+                          ) : (
+                            <File className="w-5 h-5" />
+                          )}
                         </div>
                         <div className="overflow-hidden">
                           <p className="text-xs font-semibold text-text-primary truncate">
                             {item.media?.name || item.content || 'Shared media'}
                           </p>
                           {item.media?.size && (
-                            <span className="text-[10px] text-text-muted block mt-0.5">{formatBytes(item.media.size)}</span>
+                            <span className="text-[10px] text-text-muted block mt-0.5">
+                              {formatBytes(item.media.size)}
+                            </span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
                         {item.media?.url ? (
-                          <button 
-                            onClick={(e) => handleOpenPreview(e, item.media.mediaId || item.media.url)}
+                          <button
+                            onClick={(e) =>
+                              handleOpenPreview(e, item.media.mediaId || item.media.url)
+                            }
                             className="p-1.5 hover:bg-background rounded-lg text-text-secondary hover:text-primary-500 transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                         ) : (
-                          <a 
-                            href={item.content?.match(/https?:\/\/[^\s]+/i)?.[0]} 
-                            target="_blank" 
+                          <a
+                            href={item.content?.match(/https?:\/\/[^\s]+/i)?.[0]}
+                            target="_blank"
                             rel="noreferrer"
                             className="p-1.5 hover:bg-background rounded-lg text-text-secondary hover:text-primary-500 transition-colors"
                           >
@@ -619,8 +728,14 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
                           </a>
                         )}
                         {item.media?.url && (
-                          <button 
-                            onClick={(e) => handleDownload(e, item.media.mediaId || item.media.url, item.media.name)}
+                          <button
+                            onClick={(e) =>
+                              handleDownload(
+                                e,
+                                item.media.mediaId || item.media.url,
+                                item.media.name
+                              )
+                            }
                             className="p-1.5 hover:bg-background rounded-lg text-text-secondary hover:text-primary-500 transition-colors"
                           >
                             <Download className="w-4 h-4" />
@@ -633,11 +748,15 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
               )}
 
               {mediaData?.data?.pagination?.hasMore && (
-                <button 
-                  onClick={loadMoreMedia} 
+                <button
+                  onClick={loadMoreMedia}
                   className="w-full text-center text-xs text-primary-500 font-semibold py-2 hover:underline flex items-center justify-center gap-1.5"
                 >
-                  {isFetchingMedia ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Load More'}
+                  {isFetchingMedia ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    'Load More'
+                  )}
                 </button>
               )}
             </div>
@@ -646,11 +765,13 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
 
         {/* Chat Actions */}
         <div className="pt-6 border-t border-border space-y-3">
-          <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">Actions</h4>
+          <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+            Actions
+          </h4>
 
           {!contact && (
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               onClick={() => setIsAddContactOpen(true)}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white bg-primary-500 hover:bg-primary-600 border-transparent font-medium"
             >
@@ -658,16 +779,16 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
             </Button>
           )}
 
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={handleShareContact}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border"
           >
             <Share2 className="w-4 h-4" /> Share Contact
           </Button>
 
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={handleClearChat}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border hover:bg-error/5 hover:text-error hover:border-error/20"
           >
@@ -675,7 +796,7 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
           </Button>
 
           {contact && (
-            <Button 
+            <Button
               variant="secondary"
               onClick={handleDeleteContact}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-error/10 hover:bg-error/20 text-error border-transparent"
@@ -684,7 +805,6 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
             </Button>
           )}
         </div>
-
       </div>
 
       {/* Add Contact Modal */}
@@ -714,17 +834,10 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
             required
           />
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setIsUnlockPromptOpen(false)}
-            >
+            <Button type="button" variant="ghost" onClick={() => setIsUnlockPromptOpen(false)}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-            >
+            <Button type="submit" variant="primary">
               Confirm
             </Button>
           </div>
@@ -739,7 +852,8 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
       >
         <div className="space-y-4">
           <p className="text-text-secondary text-sm">
-            Are you sure you want to clear this chat? All messages and call history will be deleted for you. This action cannot be undone.
+            Are you sure you want to clear this chat? All messages and call history will be deleted
+            for you. This action cannot be undone.
           </p>
           <div className="flex justify-end gap-3 mt-4">
             <Button variant="ghost" onClick={() => setIsClearChatDialogOpen(false)}>
@@ -760,7 +874,8 @@ export const ContactDetailsPanel: React.FC<ContactDetailsPanelProps> = ({ isOpen
       >
         <div className="space-y-4">
           <p className="text-text-secondary text-sm">
-            Are you sure you want to delete this contact? This will permanently delete your chat history and remove them from your contacts. This action cannot be undone.
+            Are you sure you want to delete this contact? This will permanently delete your chat
+            history and remove them from your contacts. This action cannot be undone.
           </p>
           <div className="flex justify-end gap-3 mt-4">
             <Button variant="ghost" onClick={() => setIsDeleteContactDialogOpen(false)}>

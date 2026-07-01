@@ -3,8 +3,8 @@ self.addEventListener('push', function(event) {
     const data = event.data.json();
     const options = {
       body: data.body || 'You have a new message on Zira Chat.',
-      icon: '/vite.svg', // Placeholder icon, replace with actual app icon
-      badge: '/vite.svg',
+      icon: '/favicon.svg', // Placeholder icon, replace with actual app icon
+      badge: '/favicon.svg',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),

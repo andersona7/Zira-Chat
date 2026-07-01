@@ -2,12 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Loader } from './ui/Loader';
 import type { AppDispatch, RootState } from '@/store';
-import {
-  logout,
-  markAuthHydrated,
-  setAuthLoading,
-  setCredentials,
-} from '@/store/slices/authSlice';
+import { logout, markAuthHydrated, setAuthLoading, setCredentials } from '@/store/slices/authSlice';
 
 interface RefreshResponse {
   success: boolean;
@@ -55,7 +50,7 @@ export const AuthBootstrap = ({ children }: { children: React.ReactNode }) => {
           throw new Error('refresh_failed');
         }
 
-        const meResponse = await fetch('/api/v1/users/me', {
+        const meResponse = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/users/me`, {
           credentials: 'include',
           headers: {
             authorization: `Bearer ${accessToken}`,

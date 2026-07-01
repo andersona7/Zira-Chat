@@ -44,16 +44,19 @@ export const useSecureMedia = (mediaIdOrUrl: string | undefined) => {
 
     const fetchSignedUrl = async () => {
       try {
-        const response = await fetch(`/api/v1/media/${encodeURIComponent(mediaId)}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || ''}/api/v1/media/${encodeURIComponent(mediaId)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         if (!response.ok) {
           throw new Error('Failed to fetch secure media URL');
         }
-        
+
         const resData = await response.json();
         if (resData.success && resData.url && isMounted) {
           setSecureUrl(resData.url);
