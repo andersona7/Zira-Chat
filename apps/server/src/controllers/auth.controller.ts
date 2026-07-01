@@ -5,11 +5,29 @@ import { Session } from '../models/Session';
 import { Otp } from '../models/Otp';
 import { Block } from '../models/Block';
 import { generateAccessToken } from '../utils/jwt';
-import { sendVerificationEmail, sendPasswordResetEmail, sendVerificationEmail as sendRegEmail } from '../utils/email.service';
-import { sendPasswordChangedAlert, sendLoginAlert, sendLogoutAllAlert, sendSuspiciousLoginAlert } from '../services/security-email.service';
-import { createSession, refreshSession, revokeSession, revokeAllSessions, detectTokenReuse } from '../services/session.service';
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendVerificationEmail as sendRegEmail,
+} from '../utils/email.service';
+import {
+  sendPasswordChangedAlert,
+  sendLoginAlert,
+  sendLogoutAllAlert,
+  sendSuspiciousLoginAlert,
+} from '../services/security-email.service';
+import {
+  createSession,
+  refreshSession,
+  revokeSession,
+  revokeAllSessions,
+  detectTokenReuse,
+} from '../services/session.service';
 import { assessLoginRisk } from '../services/risk.service';
-import { logSecurityEvent, getSecurityHistory as getLogHistory } from '../services/security-log.service';
+import {
+  logSecurityEvent,
+  getSecurityHistory as getLogHistory,
+} from '../services/security-log.service';
 import { hashToken, verifyPassword, hashPassword } from '../utils/crypto.utils';
 import { parseUserAgent } from '../utils/device.utils';
 import { getGeoFromIP, maskIpAddress } from '../utils/geo.utils';
@@ -88,7 +106,8 @@ export const sendVerificationOtp = async (req: Request, res: Response) => {
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      sendVerificationEmail(normalizedEmail, otpVal).catch(err => 
+      console.log(`[DEV ONLY] Generated verification OTP for ${normalizedEmail}: ${otpVal}`);
+      sendVerificationEmail(normalizedEmail, otpVal).catch((err) =>
         console.error('Email sending failed in background:', err)
       );
     } else {
@@ -109,15 +128,21 @@ export const verifyVerificationOtp = async (req: Request, res: Response) => {
 
     const otpDoc = await Otp.findOne({ email: normalizedEmail, type: 'verification' });
     if (!otpDoc) {
-      return res.status(400).json({ success: false, error: 'Verification code expired or not requested' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Verification code expired or not requested' });
     }
 
     if (otpDoc.attempts >= 5) {
       await Otp.deleteOne({ _id: otpDoc._id });
-      return res.status(400).json({ success: false, error: 'Too many failed attempts. Please request a new OTP.' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Too many failed attempts. Please request a new OTP.' });
     }
 
-    const isMatch = (process.env.NODE_ENV !== 'production' && otp === '123456') || await bcrypt.compare(otp, otpDoc.otpHash);
+    const isMatch =
+      (process.env.NODE_ENV !== 'production' && otp === '123456') ||
+      (await bcrypt.compare(otp, otpDoc.otpHash));
     if (!isMatch) {
       otpDoc.attempts += 1;
       await otpDoc.save();
@@ -127,7 +152,12 @@ export const verifyVerificationOtp = async (req: Request, res: Response) => {
     otpDoc.verified = true;
     await otpDoc.save();
 
-    res.status(200).json({ success: true, message: 'Email verified successfully. You can now complete registration.' });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: 'Email verified successfully. You can now complete registration.',
+      });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Verification failed' });
   }
@@ -140,15 +170,23 @@ export const register = async (req: Request, res: Response) => {
     const normalizedUsername = username.trim();
 
     if (!fullName || fullName.trim().length < 2) {
-      return res.status(400).json({ success: false, error: 'Full Name must be at least 2 characters' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Full Name must be at least 2 characters' });
     }
 
-    const otpDoc = await Otp.findOne({ email: normalizedEmail, type: 'verification', verified: true });
+    const otpDoc = await Otp.findOne({
+      email: normalizedEmail,
+      type: 'verification',
+      verified: true,
+    });
     if (!otpDoc) {
       return res.status(400).json({ success: false, error: 'Email verification required' });
     }
 
-    const existingUser = await User.findOne({ username: { $regex: new RegExp(`^${normalizedUsername}$`, 'i') } });
+    const existingUser = await User.findOne({
+      username: { $regex: new RegExp(`^${normalizedUsername}$`, 'i') },
+    });
     if (existingUser) {
       return res.status(409).json({ success: false, error: 'Username is already taken' });
     }
@@ -215,7 +253,9 @@ export const register = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('Error in registration:', error);
-    res.status(500).json({ success: false, error: error.message || 'Server error during registration' });
+    res
+      .status(500)
+      .json({ success: false, error: error.message || 'Server error during registration' });
   }
 };
 
@@ -225,7 +265,9 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const { username, password, deviceId } = req.body;
-    const user = await User.findOne({ username: { $regex: new RegExp(`^${username.trim()}$`, 'i') } });
+    const user = await User.findOne({
+      username: { $regex: new RegExp(`^${username.trim()}$`, 'i') },
+    });
 
     if (!user || !(await user.comparePassword(password))) {
       // Audit fail
@@ -264,21 +306,26 @@ export const login = async (req: Request, res: Response) => {
         reason: `High risk login blocked. Score: ${risk.score}. Factors: ${risk.factors.join(', ')}`,
       });
 
-      sendSuspiciousLoginAlert(user, {
-        deviceName: deviceInfo.deviceName,
-        browser: deviceInfo.browser,
-        browserVersion: deviceInfo.browserVersion,
-        os: deviceInfo.os,
-        ipAddress: ip,
-        country: geoInfo.country,
-        region: geoInfo.region,
-        city: geoInfo.city,
-        loginAt: new Date(),
-      } as any, risk.factors).catch(err => console.error('Failed to send risk email:', err));
+      sendSuspiciousLoginAlert(
+        user,
+        {
+          deviceName: deviceInfo.deviceName,
+          browser: deviceInfo.browser,
+          browserVersion: deviceInfo.browserVersion,
+          os: deviceInfo.os,
+          ipAddress: ip,
+          country: geoInfo.country,
+          region: geoInfo.region,
+          city: geoInfo.city,
+          loginAt: new Date(),
+        } as any,
+        risk.factors
+      ).catch((err) => console.error('Failed to send risk email:', err));
 
       return res.status(403).json({
         success: false,
-        error: 'Login blocked due to highly suspicious activity. A security alert email has been sent.',
+        error:
+          'Login blocked due to highly suspicious activity. A security alert email has been sent.',
         riskFactors: risk.factors,
       });
     }
@@ -299,7 +346,7 @@ export const login = async (req: Request, res: Response) => {
       reason: 'Successful credentials login',
     });
 
-    sendLoginAlert(user, session).catch(err => console.error('Failed to send login alert:', err));
+    sendLoginAlert(user, session).catch((err) => console.error('Failed to send login alert:', err));
 
     const accessToken = generateAccessToken(user._id, session.sessionId);
 
@@ -310,7 +357,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Fetch blockedBy for complete user state
     const blocks = await Block.find({ blockedId: user._id });
-    const blockedBy = blocks.map(b => b.blockerId.toString());
+    const blockedBy = blocks.map((b) => b.blockerId.toString());
 
     res.status(200).json({
       success: true,
@@ -346,9 +393,12 @@ export const login = async (req: Request, res: Response) => {
 export const sendForgotPasswordOtp = async (req: Request, res: Response) => {
   try {
     const { username } = req.body;
-    const user = await User.findOne({ username: { $regex: new RegExp(`^${username.trim()}$`, 'i') } });
+    const user = await User.findOne({
+      username: { $regex: new RegExp(`^${username.trim()}$`, 'i') },
+    });
 
-    const genericSuccessMessage = 'If the account exists, a reset code has been sent to the registered email address.';
+    const genericSuccessMessage =
+      'If the account exists, a reset code has been sent to the registered email address.';
 
     if (!user) {
       return res.status(200).json({ success: true, message: genericSuccessMessage });
@@ -381,7 +431,8 @@ export const sendForgotPasswordOtp = async (req: Request, res: Response) => {
     });
 
     if (process.env.NODE_ENV !== 'production') {
-      sendPasswordResetEmail(email, otpVal).catch(err => 
+      console.log(`[DEV ONLY] Generated password reset OTP for ${email}: ${otpVal}`);
+      sendPasswordResetEmail(email, otpVal).catch((err) =>
         console.error('Password reset email sending failed in background:', err)
       );
     } else {
@@ -398,9 +449,13 @@ export const sendForgotPasswordOtp = async (req: Request, res: Response) => {
 export const verifyForgotPasswordOtp = async (req: Request, res: Response) => {
   try {
     const { username, otp } = req.body;
-    const user = await User.findOne({ username: { $regex: new RegExp(`^${username.trim()}$`, 'i') } });
+    const user = await User.findOne({
+      username: { $regex: new RegExp(`^${username.trim()}$`, 'i') },
+    });
     if (!user) {
-      return res.status(400).json({ success: false, error: 'Invalid user or verification session expired' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Invalid user or verification session expired' });
     }
 
     const otpDoc = await Otp.findOne({ email: user.email.toLowerCase(), type: 'password_reset' });
@@ -410,10 +465,14 @@ export const verifyForgotPasswordOtp = async (req: Request, res: Response) => {
 
     if (otpDoc.attempts >= 5) {
       await Otp.deleteOne({ _id: otpDoc._id });
-      return res.status(400).json({ success: false, error: 'Too many failed attempts. Please request a new OTP.' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'Too many failed attempts. Please request a new OTP.' });
     }
 
-    const isMatch = (process.env.NODE_ENV !== 'production' && otp === '123456') || await bcrypt.compare(otp, otpDoc.otpHash);
+    const isMatch =
+      (process.env.NODE_ENV !== 'production' && otp === '123456') ||
+      (await bcrypt.compare(otp, otpDoc.otpHash));
     if (!isMatch) {
       otpDoc.attempts += 1;
       await otpDoc.save();
@@ -423,7 +482,9 @@ export const verifyForgotPasswordOtp = async (req: Request, res: Response) => {
     otpDoc.verified = true;
     await otpDoc.save();
 
-    res.status(200).json({ success: true, message: 'Reset code verified. Please set a new password.' });
+    res
+      .status(200)
+      .json({ success: true, message: 'Reset code verified. Please set a new password.' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Verification failed' });
   }
@@ -432,17 +493,27 @@ export const verifyForgotPasswordOtp = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { username, otp, password } = req.body;
-    const user = await User.findOne({ username: { $regex: new RegExp(`^${username.trim()}$`, 'i') } });
+    const user = await User.findOne({
+      username: { $regex: new RegExp(`^${username.trim()}$`, 'i') },
+    });
     if (!user) {
       return res.status(400).json({ success: false, error: 'Reset process invalid or expired' });
     }
 
-    const otpDoc = await Otp.findOne({ email: user.email.toLowerCase(), type: 'password_reset', verified: true });
+    const otpDoc = await Otp.findOne({
+      email: user.email.toLowerCase(),
+      type: 'password_reset',
+      verified: true,
+    });
     if (!otpDoc) {
-      return res.status(400).json({ success: false, error: 'OTP verification required before password reset' });
+      return res
+        .status(400)
+        .json({ success: false, error: 'OTP verification required before password reset' });
     }
 
-    const isMatch = (process.env.NODE_ENV !== 'production' && otp === '123456') || await bcrypt.compare(otp, otpDoc.otpHash);
+    const isMatch =
+      (process.env.NODE_ENV !== 'production' && otp === '123456') ||
+      (await bcrypt.compare(otp, otpDoc.otpHash));
     if (!isMatch) {
       return res.status(400).json({ success: false, error: 'Invalid verification token' });
     }
@@ -453,7 +524,13 @@ export const resetPassword = async (req: Request, res: Response) => {
     await Otp.deleteOne({ _id: otpDoc._id });
 
     // Revoke all sessions on password reset
-    await revokeAllSessions(user._id, undefined, 'Password reset initiated', 'PASSWORD_CHANGED', req);
+    await revokeAllSessions(
+      user._id,
+      undefined,
+      'Password reset initiated',
+      'PASSWORD_CHANGED',
+      req
+    );
 
     await logSecurityEvent({
       user: user._id,
@@ -463,7 +540,9 @@ export const resetPassword = async (req: Request, res: Response) => {
       reason: 'Password reset via email verification',
     });
 
-    res.status(200).json({ success: true, message: 'Password has been reset successfully. Please sign in.' });
+    res
+      .status(200)
+      .json({ success: true, message: 'Password has been reset successfully. Please sign in.' });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to reset password' });
   }
@@ -482,13 +561,20 @@ export const refresh = async (req: Request, res: Response) => {
     const session = await Session.findOne({ refreshTokenHash: hashedOldToken }).populate('user');
 
     if (!session) {
-      console.warn('[AUTH] refresh_token_invalid | tokenHashPrefix=' + hashedOldToken.slice(0, 8) + '... | ip=' + req.ip);
+      console.warn(
+        '[AUTH] refresh_token_invalid | tokenHashPrefix=' +
+          hashedOldToken.slice(0, 8) +
+          '... | ip=' +
+          req.ip
+      );
       clearRefreshCookie(res);
       return res.status(401).json({ success: false, error: 'Invalid refresh token' });
     }
 
     if (session.status !== 'ACTIVE' || session.expiresAt <= new Date()) {
-      console.warn(`[AUTH] session_expired_on_refresh | sessionId=${session.sessionId} | status=${session.status} | expiresAt=${session.expiresAt.toISOString()} | ip=${req.ip}`);
+      console.warn(
+        `[AUTH] session_expired_on_refresh | sessionId=${session.sessionId} | status=${session.status} | expiresAt=${session.expiresAt.toISOString()} | ip=${req.ip}`
+      );
       if (session.status === 'ACTIVE' && session.expiresAt <= new Date()) {
         session.status = 'EXPIRED';
         session.logoutReason = 'Refresh token expired';
@@ -501,7 +587,9 @@ export const refresh = async (req: Request, res: Response) => {
     const { rawRefreshToken: newRawToken, newSession } = await refreshSession(req, session);
     const user = await User.findById(session.user);
     if (!user) {
-      console.warn(`[AUTH] refresh_user_not_found | userId=${session.user} | sessionId=${session.sessionId}`);
+      console.warn(
+        `[AUTH] refresh_user_not_found | userId=${session.user} | sessionId=${session.sessionId}`
+      );
       return res.status(401).json({ success: false, error: 'User not found' });
     }
 
@@ -529,7 +617,7 @@ export const logout = async (req: AuthRequest, res: Response) => {
     const session = await Session.findOne({ refreshTokenHash: hashed });
     if (session) {
       await revokeSession(session.sessionId, 'Logged out normally', 'LOGGED_OUT', req);
-      
+
       await logSecurityEvent({
         user: session.user,
         action: 'LOGOUT',
@@ -551,8 +639,10 @@ export const logout = async (req: AuthRequest, res: Response) => {
 
 export const getActiveSessions = async (req: AuthRequest, res: Response) => {
   try {
-    const sessions = await Session.find({ user: req.user?.id, status: 'ACTIVE' }).sort({ lastActivity: -1 });
-    const formatted = sessions.map(s => ({
+    const sessions = await Session.find({ user: req.user?.id, status: 'ACTIVE' }).sort({
+      lastActivity: -1,
+    });
+    const formatted = sessions.map((s) => ({
       id: s.sessionId,
       deviceName: s.deviceName,
       browser: s.browser,
@@ -613,7 +703,13 @@ export const terminateAllSessions = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id as string;
     const currentSessId = req.sessionId;
 
-    await revokeAllSessions(userId, keepCurrent ? currentSessId : undefined, 'User logged out all devices', 'REVOKED', req);
+    await revokeAllSessions(
+      userId,
+      keepCurrent ? currentSessId : undefined,
+      'User logged out all devices',
+      'REVOKED',
+      req
+    );
 
     await logSecurityEvent({
       user: new mongoose.Types.ObjectId(userId),
@@ -718,7 +814,7 @@ export const getSecurityLogHistory = async (req: AuthRequest, res: Response) => 
 
     const { logs, total } = await getLogHistory(req.user?.id as string, page, limit);
 
-    const formatted = logs.map(l => ({
+    const formatted = logs.map((l) => ({
       id: l._id,
       action: l.action,
       deviceName: l.deviceName,
@@ -760,13 +856,21 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 
     if (logoutAll) {
       // Revoke all other sessions
-      await revokeAllSessions(user._id, req.sessionId, 'Password changed by user', 'PASSWORD_CHANGED', req);
+      await revokeAllSessions(
+        user._id,
+        req.sessionId,
+        'Password changed by user',
+        'PASSWORD_CHANGED',
+        req
+      );
     }
 
     // Send confirmation email
     const activeSession = await Session.findOne({ sessionId: req.sessionId });
     if (activeSession) {
-      sendPasswordChangedAlert(user, activeSession).catch(err => console.error('Failed to send password changed email:', err));
+      sendPasswordChangedAlert(user, activeSession).catch((err) =>
+        console.error('Failed to send password changed email:', err)
+      );
     }
 
     res.status(200).json({ success: true, message: 'Password updated successfully' });
