@@ -42,5 +42,5 @@ COPY --from=installer --chown=expressjs:nodejs /app .
 WORKDIR /app/apps/server
 
 # Expose port and start
-EXPOSE 4000
-CMD ["pnpm", "run", "start"]
+EXPOSE 10000
+CMD ["node", "dist/index.js"]
